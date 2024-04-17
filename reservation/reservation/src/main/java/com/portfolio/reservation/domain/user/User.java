@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Entity
 @Table(name = "users")
@@ -17,17 +18,35 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class User extends BaseEntity {
 
-    @Column(name = "username", length = 50, unique = true)
+    @Column(length = 50, unique = true)
     private String username;
 
     @JsonIgnore
-    @Column(name = "password", length = 100)
+    @Column(length = 100)
     private String password;
 
-    @Column(name = "nickname", length = 50)
+    @Column(length = 50)
     private String nickname;
 
     @Enumerated(value = EnumType.STRING)
     private AuthorityType authority;
+
+    // jwt 토큰 추가
+    @Column(length = 1000)
+    private String refreshToken;
+
+    // 토큰 업데이트 및 삭제
+    public void updateRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
+    }
+
+    public void destroyRefreshToken() {
+        this.refreshToken = null;
+    }
+
+    // 패스워드 암호화
+    public void encodePassword(PasswordEncoder passwordEncoder){
+        this.password = passwordEncoder.encode(password);
+    }
 }
 

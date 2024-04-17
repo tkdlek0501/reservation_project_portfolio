@@ -22,6 +22,8 @@ import java.util.Map;
 @Slf4j
 public class JwtTokenProvider implements InitializingBean {
 
+    // TODO: JwtService로 대체해서 해당 class 삭제 필요
+
     private static final String AUTHORITIES_KEY = "auth";
     private final String secret;
     private final long tokenValidatyInMilliseconds;

@@ -1,6 +1,10 @@
 package com.portfolio.reservation.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.portfolio.reservation.auth.LoginFailureHandler;
 import com.portfolio.reservation.auth.LoginSuccessJWTProvideHandler;
+import com.portfolio.reservation.filter.JsonUsernamePasswordAuthenticationFilter;
+import com.portfolio.reservation.filter.JwtAuthenticationProcessingFilter;
 import com.portfolio.reservation.repository.UserRepository;
 import com.portfolio.reservation.service.CustomUserDetailsService;
 import com.portfolio.reservation.service.JwtService;
@@ -26,8 +30,12 @@ import org.springframework.security.web.authentication.logout.LogoutFilter;
 public class SecurityConfig {
 
     private final CustomUserDetailsService userDetailsService;
+
     private final JwtService jwtService;
+
     private final UserRepository userRepository;
+
+    private final ObjectMapper objectMapper;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -55,8 +63,8 @@ public class SecurityConfig {
                                 .anyRequest().authenticated()
                 )
                 // JwtFilter 설정
-//                .addFilterAfter(jsonUsernamePasswordLoginFilter(), LogoutFilter.class) // 추가 : 커스터마이징 된 필터를 SpringSecurityFilterChain에 등록
-//                .addFilterBefore(jwtAuthenticationProcessingFilter(), JsonUsernamePasswordAuthenticationFilter.class);
+                .addFilterAfter(jsonUsernamePasswordLoginFilter(), LogoutFilter.class) // 추가 : 커스터마이징 된 필터를 SpringSecurityFilterChain에 등록
+                .addFilterBefore(jwtAuthenticationProcessingFilter(), JsonUsernamePasswordAuthenticationFilter.class)
 
                 .build();
     }
@@ -68,7 +76,7 @@ public class SecurityConfig {
 
     // 인증 관리자 관련 설정
     @Bean
-    public DaoAuthenticationProvider daoAuthenticationProvider() throws Exception {
+    public DaoAuthenticationProvider daoAuthenticationProvider() {
         DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
 
         daoAuthenticationProvider.setUserDetailsService(userDetailsService);
@@ -78,8 +86,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager() throws Exception {//2 - AuthenticationManager 등록
-        DaoAuthenticationProvider provider = daoAuthenticationProvider();//DaoAuthenticationProvider 사용
+    public AuthenticationManager authenticationManager() throws Exception {
+        DaoAuthenticationProvider provider = daoAuthenticationProvider(); //DaoAuthenticationProvider 사용
+        provider.setPasswordEncoder(passwordEncoder());
         return new ProviderManager(provider);
     }
 
@@ -87,25 +96,25 @@ public class SecurityConfig {
     public LoginSuccessJWTProvideHandler loginSuccessJWTProvideHandler(){
         return new LoginSuccessJWTProvideHandler(jwtService, userRepository);
     }
-//
-//    @Bean
-//    public LoginFailureHandler loginFailureHandler(){
-//        return new LoginFailureHandler();
-//    }
-//
-//    @Bean
-//    public JsonUsernamePasswordAuthenticationFilter jsonUsernamePasswordLoginFilter() throws Exception {
-//        JsonUsernamePasswordAuthenticationFilter jsonUsernamePasswordLoginFilter = new JsonUsernamePasswordAuthenticationFilter(objectMapper);
-//        jsonUsernamePasswordLoginFilter.setAuthenticationManager(authenticationManager());
-//        jsonUsernamePasswordLoginFilter.setAuthenticationSuccessHandler(loginSuccessJWTProvideHandler());
-//        jsonUsernamePasswordLoginFilter.setAuthenticationFailureHandler(loginFailureHandler());
-//        return jsonUsernamePasswordLoginFilter;
-//    }
-//
-//    @Bean
-//    public JwtAuthenticationProcessingFilter jwtAuthenticationProcessingFilter(){
-//        JwtAuthenticationProcessingFilter jsonUsernamePasswordLoginFilter = new JwtAuthenticationProcessingFilter(jwtService, usersRepository);
-//
-//        return jsonUsernamePasswordLoginFilter;
-//    }
+
+    @Bean
+    public LoginFailureHandler loginFailureHandler(){
+        return new LoginFailureHandler();
+    }
+
+    @Bean
+    public JsonUsernamePasswordAuthenticationFilter jsonUsernamePasswordLoginFilter() throws Exception {
+        JsonUsernamePasswordAuthenticationFilter jsonUsernamePasswordLoginFilter = new JsonUsernamePasswordAuthenticationFilter(objectMapper);
+        jsonUsernamePasswordLoginFilter.setAuthenticationManager(authenticationManager());
+        jsonUsernamePasswordLoginFilter.setAuthenticationSuccessHandler(loginSuccessJWTProvideHandler());
+        jsonUsernamePasswordLoginFilter.setAuthenticationFailureHandler(loginFailureHandler());
+        return jsonUsernamePasswordLoginFilter;
+    }
+
+    @Bean
+    public JwtAuthenticationProcessingFilter jwtAuthenticationProcessingFilter(){
+        JwtAuthenticationProcessingFilter jsonUsernamePasswordLoginFilter = new JwtAuthenticationProcessingFilter(jwtService, userRepository);
+
+        return jsonUsernamePasswordLoginFilter;
+    }
 }

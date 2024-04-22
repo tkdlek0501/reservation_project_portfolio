@@ -17,7 +17,7 @@ import java.util.Collection;
 @ToString
 public class CustomUserPrincipal implements UserDetails, CredentialsContainer, Serializable {
 
-//    private final Long id;
+    private final Long id;
 
     private final String username;
 
@@ -31,7 +31,7 @@ public class CustomUserPrincipal implements UserDetails, CredentialsContainer, S
 
     public CustomUserPrincipal(User user) {
 
-//        this.id = user.getId();
+        this.id = user.getId();
         this.username = user.getUsername();
         this.password = user.getPassword();
         this.nickname = user.getNickname();

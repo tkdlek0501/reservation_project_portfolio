@@ -1,6 +1,8 @@
 package com.portfolio.reservation.service;
 
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.portfolio.reservation.auth.CustomUserPrincipal;
 import com.portfolio.reservation.domain.user.User;
@@ -33,7 +35,7 @@ import java.util.Optional;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
-public class JwtService implements InitializingBean  {
+public class JwtService {
 
     @Value("${jwt.secret}")
     private String secret;
@@ -54,53 +56,22 @@ public class JwtService implements InitializingBean  {
     private static final String BEARER = "Bearer ";
 
     private final UserRepository userRepository;
-    private final ObjectMapper objectMapper;
 
-    private Key key;
+    public String createAccessToken(String username) {
 
-    @Override
-    public void afterPropertiesSet() {
-        // *
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-
-//        this.key = new SecretKeySpec(keyBytes, SignatureAlgorithm.HS512.getJcaName());
-        this.key = Keys.hmacShaKeyFor(keyBytes);
-    }
-
-    private Map<String, Object> makeClaimContents(CustomUserPrincipal principal) {
-        Map<String, Object> claims = new HashMap<>();
-
-//        claims.put("id", principal.getId());
-        claims.put("username", principal.getUsername());
-        claims.put("nickname", principal.getNickname());
-        claims.put("type", principal.getAuthorities());
-
-        Map<String, Object> store = new HashMap<>();
-//        store.put("id", principal.getStoreId());
-        claims.put("store", store);
-
-        return claims;
-    }
-
-    public String createAccessToken(Authentication authentication) {
-
-        CustomUserPrincipal customUserPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-
-        return Jwts.builder()
-                .setSubject(ACCESS_TOKEN_SUBJECT)
-                .setExpiration(new Date(System.currentTimeMillis() + accessTokenValidityInSeconds * 1000))
-                .setClaims(makeClaimContents(customUserPrincipal))
-                .signWith(key, SignatureAlgorithm.HS512) // secret 값, 암호화 알고리즘 세팅
-                .compact();
+        return JWT.create()
+                .withSubject(ACCESS_TOKEN_SUBJECT)
+                .withExpiresAt(new Date(System.currentTimeMillis() + accessTokenValidityInSeconds * 1000))
+                .withClaim(USERNAME_CLAIM, username)
+                .sign(Algorithm.HMAC512(secret));
     }
 
     public String createRefreshToken() {
 
-        return Jwts.builder()
-                .setSubject(REFRESH_TOKEN_SUBJECT)
-                .setExpiration(new Date(System.currentTimeMillis() + refreshTokenValidityInSeconds  * 1000))
-                .signWith(key, SignatureAlgorithm.HS512) // secret 값, 암호화 알고리즘 세팅
-                .compact();
+        return JWT.create()
+                .withSubject(REFRESH_TOKEN_SUBJECT)
+                .withExpiresAt(new Date(System.currentTimeMillis() + refreshTokenValidityInSeconds * 1000))
+                .sign(Algorithm.HMAC512(secret));
     }
 
     public void updateRefreshToken(String username, String refreshToken) {
@@ -114,7 +85,7 @@ public class JwtService implements InitializingBean  {
     public void destroyRefreshToken(String username) {
         userRepository.findOneByUsername(username)
                 .ifPresentOrElse(
-                        users -> users.destroyRefreshToken(),
+                        User::destroyRefreshToken,
                         () -> new Exception("회원 조회 실패")
                 );
     }
@@ -146,23 +117,21 @@ public class JwtService implements InitializingBean  {
         ).map(accessToken -> accessToken.replace(BEARER, ""));
     }
 
-    public Authentication getAuthentication(String accessToken) {
-//        try {
-            Claims claims = Jwts
-                    .parserBuilder()
-                    .setSigningKey(key)
-                    .build()
-                    .parseClaimsJws(accessToken)
-                    .getBody();
-//        } catch (Exception e) {
-//            log.error(e.getMessage());
-//            return Optional.empty();
-//        }
+    public Optional<String> extractRefreshToken(HttpServletRequest request) {
+        return Optional.ofNullable(request.getHeader(refreshHeader)).filter(
+                refreshToken -> refreshToken.startsWith(BEARER)
+        ).map(refreshToken -> refreshToken.replace(BEARER, "")); // BEARER 를 떼어내줌
+    }
 
-        User user = userRepository.findById(Long.valueOf(claims.get("id").toString())).orElseThrow(() -> new UsernameNotFoundException("데이터베이스에서 찾을 수 없습니다."));
-        UserDetails userDetails = CustomUserPrincipal.of(user);
-
-        return new UsernamePasswordAuthenticationToken(user, accessToken, userDetails.getAuthorities());
+    public Optional<String> extractUsername(String accessToken) {
+        try {
+            return Optional.ofNullable(
+                    JWT.require(Algorithm.HMAC512(secret)).build().verify(accessToken).getClaim(USERNAME_CLAIM)
+                            .asString());
+        } catch (Exception e) {
+            log.error(e.getMessage());
+            return Optional.empty();
+        }
     }
 
     public void setAccessTokenHeader(HttpServletResponse response, String accessToken) {
@@ -173,19 +142,13 @@ public class JwtService implements InitializingBean  {
         response.setHeader(refreshHeader, refreshToken);
     }
 
-    public boolean validateToken(String token) {
+    public boolean isTokenValid(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            JWT.require(Algorithm.HMAC512(secret)).build().verify(token);
             return true;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("잘못된 JWT 서명입니다.");
-        } catch (ExpiredJwtException e) {
-            log.info("만료된 JWT 토큰입니다.");
-        } catch (UnsupportedJwtException e) {
-            log.info("지원하지 않는 JWT 토큰입니다.");
-        } catch (IllegalArgumentException e) {
-            log.info("JWT 토큰이 잘못되었습니다.");
+        } catch (Exception e) {
+            log.error("유효하지 않은 Token입니다", e.getMessage());
+            return false;
         }
-        return false;
     }
 }

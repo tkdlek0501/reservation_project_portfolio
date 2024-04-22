@@ -33,9 +33,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     }
 
     public UserDetails loadUserByUserId(Long id) {
-        log.debug("security check id ({})", id);
 
-        User user = userRepository.findById(id).orElseThrow(() -> new UsernameNotFoundException("데이터베이스에서 찾을 수 없습니다."));
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new UsernameNotFoundException("데이터베이스에서 찾을 수 없습니다."));
 
         return CustomUserPrincipal.of(user);
     }

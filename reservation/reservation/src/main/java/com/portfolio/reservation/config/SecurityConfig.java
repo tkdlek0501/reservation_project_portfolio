@@ -18,11 +18,14 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -39,13 +42,15 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                // token을 사용하는 방식이기 때문에 csrf를 disable
-        return http.csrf(AbstractHttpConfigurer::disable)
+
+        return http.csrf(AbstractHttpConfigurer::disable) // token을 사용하는 방식이기 때문에 csrf를 disable
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
-                // 세션을 사용하지 않기 때문에 STATELESS로 설정
+                .headers(
+                    headers -> headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable) // h2 console 의 iframe 렌더링 활성을 위해 disable
+                )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // 세션을 사용하지 않기 때문에 STATELESS 로 설정
                 )
 //                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
 //                .accessDeniedHandler(jwtAccessDeniedHandler)
@@ -53,18 +58,22 @@ public class SecurityConfig {
                 .authorizeHttpRequests(
                         request -> request
                                 .requestMatchers(
+                                        "/h2-console/**",
+                                        "/login/**",
                                         "/health",
                                         "/swagger-ui/**",
                                         "/swagger-resources/**",
-                                        "/v3/api-docs/**",
-                                        "/v1/user/signup",
-                                        "/v1/auth/authenticate")
+                                        "/v3/api-docs/**"
+//                                        "/v1/user/signup",
+//                                        "/v1/auth/authenticate",
+//                                        "/v1/login/**")
+                                )
                                 .permitAll()
                                 .anyRequest().authenticated()
                 )
                 // JwtFilter 설정
-                .addFilterAfter(jsonUsernamePasswordLoginFilter(), LogoutFilter.class) // 추가 : 커스터마이징 된 필터를 SpringSecurityFilterChain에 등록
-                .addFilterBefore(jwtAuthenticationProcessingFilter(), JsonUsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(jsonUsernamePasswordLoginFilter(), LogoutFilter.class) // 로그인 처리
+                .addFilterBefore(jwtAuthenticationProcessingFilter(), JsonUsernamePasswordAuthenticationFilter.class) // 로그인 제외 처리
 
                 .build();
     }

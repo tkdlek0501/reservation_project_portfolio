@@ -9,6 +9,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMapper;
@@ -21,6 +22,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
@@ -37,9 +39,9 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if(request.getRequestURI().equals(NO_CHECK_URL)) {
+        if (request.getRequestURI().equals(NO_CHECK_URL) || request.getRequestURI().contains("/h2-console")) {
             filterChain.doFilter(request, response);
-            return; // 로그인 url 은 필터에서 제외
+            return; // 로그인 url 은 여기 필터에서 제외
         }
 
         String refreshToken = jwtService
@@ -49,11 +51,11 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
 
 
         if(refreshToken != null){
-            checkRefreshTokenAndReIssueAccessToken(response, refreshToken);//3
+            checkRefreshTokenAndReIssueAccessToken(response, refreshToken);
             return;
         }
 
-        checkAccessTokenAndAuthentication(request, response, filterChain);//4
+        checkAccessTokenAndAuthentication(request, response, filterChain);
     }
 
     private void checkAccessTokenAndAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

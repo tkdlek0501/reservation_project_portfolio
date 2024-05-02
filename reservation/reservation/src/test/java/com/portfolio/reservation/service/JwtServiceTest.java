@@ -9,6 +9,7 @@ import com.portfolio.reservation.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +19,15 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 @Transactional
+@Slf4j
 public class JwtServiceTest {
 
     @Autowired
@@ -59,6 +63,7 @@ public class JwtServiceTest {
                 .nickname("user1")
                 .authority(AuthorityType.USER)
                 .build();
+        userRepository.save(user);
         clear();
     }
 
@@ -73,7 +78,7 @@ public class JwtServiceTest {
                 .verify(token);
     }
 
-
+    // test 통과
     @Test
     public void createAccessToken_AccessToken_발급() throws Exception {
         //given, when
@@ -89,6 +94,7 @@ public class JwtServiceTest {
         assertThat(subject).isEqualTo(ACCESS_TOKEN_SUBJECT);
     }
 
+    // test 통과
     @Test
     public void createRefreshToken_RefreshToken_발급() throws Exception {
         //given, when
@@ -103,6 +109,7 @@ public class JwtServiceTest {
     }
     // refreshToken은 username이 없어야 합니다.
 
+    // test 통과
     @Test
     public void updateRefreshToken_refreshToken_업데이트() throws Exception {
         //given
@@ -121,6 +128,7 @@ public class JwtServiceTest {
         assertThat(userRepository.findByRefreshToken(reIssuedRefreshToken).get().getUsername()).isEqualTo(username);
     }
 
+    // test 통과
     @Test
     public void destroyRefreshToken_refreshToken_제거() throws Exception {
         //given
@@ -139,6 +147,7 @@ public class JwtServiceTest {
         assertThat(user.getRefreshToken()).isNull();
     }
 
+    // test 통과
     @Test
     public void setAccessTokenHeader_AccessToken_헤더_설정() throws Exception {
         MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
@@ -157,8 +166,7 @@ public class JwtServiceTest {
         assertThat(headerAccessToken).isEqualTo(accessToken);
     }
 
-
-
+    // test 통과
     @Test
     public void setRefreshTokenHeader_RefreshToken_헤더_설정() throws Exception {
         MockHttpServletResponse mockHttpServletResponse = new MockHttpServletResponse();
@@ -177,6 +185,7 @@ public class JwtServiceTest {
         assertThat(headerRefreshToken).isEqualTo(refreshToken);
     }
 
+    // test 통과
     @Test
     public void sendToken_토큰_전송() throws Exception {
         //given
@@ -214,6 +223,7 @@ public class JwtServiceTest {
         return httpServletRequest;
     }
 
+    // test 통과
     @Test
     public void extractAccessToken_AccessToken_추출() throws Exception {
         //given
@@ -229,6 +239,7 @@ public class JwtServiceTest {
         assertThat(getVerify(extractAccessToken).getClaim(USERNAME_CLAIM).asString()).isEqualTo(username);
     }
 
+    // test 통과
     @Test
     public void extractRefreshToken_RefreshToken_추출() throws Exception {
         //given
@@ -244,6 +255,7 @@ public class JwtServiceTest {
         assertThat(getVerify(extractRefreshToken).getSubject()).isEqualTo(REFRESH_TOKEN_SUBJECT);
     }
 
+    // test 통과
     @Test
     public void extractUsername_Username_추출() throws Exception {
         //given

@@ -23,7 +23,7 @@ public class UserService {
     @Transactional
     public void signUp(UserCreateRequest request) throws Exception {
 
-        User user = request.toEntity(request, passwordEncoder);
+        User user = UserCreateRequest.toEntity(request, passwordEncoder);
 
         if (userRepository.findOneByUsername(request.getUsername()).isPresent()) {
             throw new Exception("이미 해당 아이디의 회원이 있습니다.");
@@ -56,6 +56,7 @@ public class UserService {
         user.updatePassword(passwordEncoder, updatePassword);
     }
 
+    @Transactional
     public void delete(String checkPassword) throws Exception {
 
         User user = userRepository.findOneByUsername(SecurityUtil.getLoginUsername())

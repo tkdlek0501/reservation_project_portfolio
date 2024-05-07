@@ -26,7 +26,7 @@ public class UserCreateRequest {
 
     private AuthorityType authority; // 권한
 
-    public User toEntity(UserCreateRequest request, PasswordEncoder passwordEncoder) {
+    public static User toEntity(UserCreateRequest request, PasswordEncoder passwordEncoder) {
 
         return User.builder()
                 .username(request.getUsername())

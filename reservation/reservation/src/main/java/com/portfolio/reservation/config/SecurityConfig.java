@@ -59,7 +59,8 @@ public class SecurityConfig {
                         request -> request
                                 .requestMatchers(
                                         "/h2-console/**",
-                                        "/login/**",
+                                        "/v1.0/user/login/**",
+                                        "/v1.0/user/signup",
                                         "/health",
                                         "/swagger-ui/**",
                                         "/swagger-resources/**",

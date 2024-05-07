@@ -10,4 +10,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findOneByUsername(String username);
 
     Optional<User> findByRefreshToken(String refreshToke);
+
+    Optional<User> findTopByOrderById();
 }

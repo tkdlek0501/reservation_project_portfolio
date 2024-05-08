@@ -79,7 +79,7 @@ public class UserService {
         return UserResponse.of(user);
     }
 
-    public UserResponse getMe(Long id) throws Exception {
+    public UserResponse getMe() throws Exception {
 
         User user = userRepository.findOneByUsername(SecurityUtil.getLoginUsername())
                 .orElseThrow(() -> new Exception("로그인 정보가 없습니다."));

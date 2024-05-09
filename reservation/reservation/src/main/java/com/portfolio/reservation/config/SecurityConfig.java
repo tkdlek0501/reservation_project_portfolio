@@ -24,8 +24,6 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -74,7 +72,7 @@ public class SecurityConfig {
                 )
                 // JwtFilter 설정
                 .addFilterAfter(jsonUsernamePasswordLoginFilter(), LogoutFilter.class) // 로그인 처리
-                .addFilterBefore(jwtAuthenticationProcessingFilter(), JsonUsernamePasswordAuthenticationFilter.class) // 로그인 제외 처리
+                .addFilterBefore(jwtAuthenticationProcessingFilter(), JsonUsernamePasswordAuthenticationFilter.class) // 로그인 제외 다른 처리
 
                 .build();
     }

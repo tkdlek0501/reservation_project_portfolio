@@ -19,6 +19,7 @@ public class LoginSuccessJWTProvideHandler extends SimpleUrlAuthenticationSucces
     private final JwtService jwtService;
     private final UserRepository userRepository;
 
+    // 로그인 성공 시점에 호출됨
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {

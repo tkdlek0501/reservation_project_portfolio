@@ -13,6 +13,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.expression.ExpressionException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,6 +67,7 @@ public class UserServiceTest {
 
         // when
         userService.signUp(request);
+        flushAndclear();
         User createdUser = userRepository.findTopByOrderById()
                 .orElseThrow(() -> new Exception("생성된 user를 찾을 수 없습니다."));
 
@@ -92,11 +96,44 @@ public class UserServiceTest {
         assertThat(user).isNotNull();
     }
 
-    // TODO: 아래부터는 로그인한 유저를 가져와야 해서 로그인 로직이 선행돼야 한다
+    // 실제 로그인은 filter 로 처리하므로 대신 아래 메서드로 로그인
+    private void setUser() throws Exception {
+        String username = "username1";
+        String password = "12345";
+        String nickname = "nickname1";
+        AuthorityType authorityType = AuthorityType.USER;
+
+        UserCreateRequest request = new UserCreateRequest(
+                username,
+                password,
+                nickname,
+                authorityType
+        );
+
+        // when
+        userService.signUp(request);
+        flushAndclear();
+
+        SecurityContext emptyContext = SecurityContextHolder.createEmptyContext();
+
+        emptyContext.setAuthentication(new UsernamePasswordAuthenticationToken(User.builder()
+                .username(username)
+                .password(password)
+                .nickname(nickname)
+                .authority(authorityType)
+                .build(),
+                null, null));
+
+        SecurityContextHolder.setContext(emptyContext);
+    }
+
+    // 통과
     @Test
     public void update_테스트() throws Exception {
 
         // given
+        setUser();
+
         UserUpdateRequest request = new UserUpdateRequest(
              "nickname2"
         );
@@ -112,10 +149,13 @@ public class UserServiceTest {
         assertThat(updatedUser.getNickname()).isEqualTo("nickname2");
     }
 
+    // 통과
     @Test
     public void updatePassword_테스트() throws Exception {
 
         // given
+        setUser();
+
         String checkPassword = "12345";
         String updatePassword = "123456";
 
@@ -132,11 +172,12 @@ public class UserServiceTest {
         }
     }
 
+    // 통과
     @Test
     public void delete_테스트() throws Exception {
 
         // given
-        signUp_테스트();
+        setUser();
 
         String checkPassword = "12345";
 
@@ -151,12 +192,13 @@ public class UserServiceTest {
         assertThat(user).isNull();
     }
 
+    // 통과
     @Test
     public void getMe_테스트() throws Exception {
 
         // given
-        signUp_테스트();
-        // TODO: 위 계정으로 로그인
+        setUser();
+
         User user = userRepository.findTopByOrderById()
                 .orElseThrow(() -> new Exception("생성된 user를 찾을 수 없습니다."));
 

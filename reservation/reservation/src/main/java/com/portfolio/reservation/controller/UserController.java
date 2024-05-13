@@ -1,5 +1,6 @@
 package com.portfolio.reservation.controller;
 
+import com.portfolio.reservation.common.CommonResponse;
 import com.portfolio.reservation.dto.user.UserCreateRequest;
 import com.portfolio.reservation.dto.user.UserPasswordUpdateRequest;
 import com.portfolio.reservation.dto.user.UserResponse;
@@ -21,85 +22,56 @@ public class UserController {
 
     private final UserService userService;
 
+    // TODO: validation 처리
+    //  -> globalHandler에서 bidingResult 로
+
     @PostMapping("/signup")
-    public ResponseEntity<Void> signUp(
+    public ResponseEntity<? extends CommonResponse> signUp(
             @RequestBody UserCreateRequest request
     ) {
 
-        try {
-            userService.signUp(request);
-            return ResponseEntity.ok(null);
-        } catch (Exception e) {
-            log.info("예상치 못한 에러 발생 : {}, {}", e.getStackTrace(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(null);
-        }
+        userService.signUp(request);
+        return ResponseEntity.ok(new CommonResponse<>(""));
     }
 
     @PatchMapping("")
-    public ResponseEntity<Void> update(
+    public ResponseEntity<? extends CommonResponse> update(
             @RequestBody UserUpdateRequest request
     ) {
 
-        try {
-            userService.update(request);
-            return ResponseEntity.ok(null);
-        } catch (Exception e) {
-            log.info("예상치 못한 에러 발생 : {}, {}", e.getStackTrace(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(null);
-        }
+        userService.update(request);
+        return ResponseEntity.ok(new CommonResponse<>(""));
     }
 
     @PatchMapping("/password")
-    public ResponseEntity<Void> updatePassword(
+    public ResponseEntity<? extends CommonResponse> updatePassword(
             @RequestBody UserPasswordUpdateRequest request
     ) {
 
-        try {
-            userService.updatePassword(request.getCheckPassword(), request.getUpdatePassword());
-            return ResponseEntity.ok(null);
-        } catch (Exception e) {
-            log.info("예상치 못한 에러 발생 : {}, {}", e.getStackTrace(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(null);
-        }
+        userService.updatePassword(request.getCheckPassword(), request.getUpdatePassword());
+        return ResponseEntity.ok(new CommonResponse<>(""));
     }
 
     @DeleteMapping("")
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<? extends CommonResponse> delete(
             @RequestBody UserPasswordUpdateRequest request
     ) {
 
-        try {
-            userService.delete(request.getCheckPassword());
-            return ResponseEntity.ok(null);
-        } catch (Exception e) {
-            log.info("예상치 못한 에러 발생 : {}, {}", e.getStackTrace(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(null);
-        }
+        userService.delete(request.getCheckPassword());
+        return ResponseEntity.ok(new CommonResponse<>(""));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUser(
+    public ResponseEntity<? extends CommonResponse<UserResponse>> getUser(
             @PathVariable("id") Long id
     ) {
 
-        try {
-            return ResponseEntity.ok(userService.getUser(id));
-        } catch (Exception e) {
-            log.info("예상치 못한 에러 발생 : {}, {}", e.getStackTrace(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(null);
-        }
+        return ResponseEntity.ok(new CommonResponse<>(userService.getUser(id)));
     }
 
     @GetMapping("")
-    public ResponseEntity<UserResponse> getMe() {
+    public ResponseEntity<? extends CommonResponse<UserResponse>> getMe() throws Exception {
 
-        try {
-            return ResponseEntity.ok(userService.getMe());
-        } catch (Exception e) {
-            log.info("예상치 못한 에러 발생 : {}, {}", e.getStackTrace(), e.getMessage());
-            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(null);
-        }
+        return ResponseEntity.ok(new CommonResponse<>(userService.getMe()));
     }
-
-    // TODO: Login jwt 발급 및 만료 등 서비스 작업
 }

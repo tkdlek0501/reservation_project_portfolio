@@ -7,18 +7,11 @@ import com.portfolio.reservation.dto.user.UserUpdateRequest;
 import com.portfolio.reservation.exception.AlreadyExistsUserException;
 import com.portfolio.reservation.exception.NotFoundUserException;
 import com.portfolio.reservation.exception.NotLoginUserException;
-import com.portfolio.reservation.exception.NotMatchedPassword;
+import com.portfolio.reservation.exception.NotMatchedPasswordException;
 import com.portfolio.reservation.repository.UserRepository;
 import com.portfolio.reservation.util.SecurityUtil;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.expression.ExpressionException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -61,7 +54,7 @@ public class UserService {
                 .orElseThrow(NotLoginUserException::new);
 
         if (!user.matchPassword(passwordEncoder, checkPassword)) {
-            throw new NotMatchedPassword();
+            throw new NotMatchedPasswordException();
         }
 
         user.updatePassword(passwordEncoder, updatePassword);
@@ -74,7 +67,7 @@ public class UserService {
                 .orElseThrow(NotLoginUserException::new);
 
         if (!user.matchPassword(passwordEncoder, checkPassword)) {
-            throw new NotMatchedPassword();
+            throw new NotMatchedPasswordException();
         }
 
         user.expire();

@@ -4,7 +4,7 @@ package com.portfolio.reservation.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.portfolio.reservation.domain.user.User;
-import com.portfolio.reservation.repository.UserRepository;
+import com.portfolio.reservation.repository.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -65,7 +64,7 @@ public class JwtService {
     }
 
     public void updateRefreshToken(String username, String refreshToken) {
-        userRepository.findOneByUsername(username)
+        userRepository.findOneByUsernameAndExpiredAtIsNull(username)
                 .ifPresentOrElse(
                         users -> users.updateRefreshToken(refreshToken),
                         () -> new Exception("회원 조회 실패")
@@ -73,7 +72,7 @@ public class JwtService {
     }
 
     public void destroyRefreshToken(String username) {
-        userRepository.findOneByUsername(username)
+        userRepository.findOneByUsernameAndExpiredAtIsNull(username)
                 .ifPresentOrElse(
                         User::destroyRefreshToken,
                         () -> new Exception("회원 조회 실패")

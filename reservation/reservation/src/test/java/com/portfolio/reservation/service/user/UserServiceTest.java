@@ -1,15 +1,15 @@
-package com.portfolio.reservation.service;
+package com.portfolio.reservation.service.user;
 
 import com.portfolio.reservation.domain.user.AuthorityType;
 import com.portfolio.reservation.domain.user.User;
 import com.portfolio.reservation.dto.user.UserCreateRequest;
 import com.portfolio.reservation.dto.user.UserResponse;
 import com.portfolio.reservation.dto.user.UserUpdateRequest;
-import com.portfolio.reservation.exception.AlreadyExistsUserException;
-import com.portfolio.reservation.exception.NotFoundUserException;
-import com.portfolio.reservation.exception.NotLoginUserException;
-import com.portfolio.reservation.exception.NotMatchedPasswordException;
-import com.portfolio.reservation.repository.UserRepository;
+import com.portfolio.reservation.exception.user.AlreadyExistsUserException;
+import com.portfolio.reservation.exception.user.NotFoundUserException;
+import com.portfolio.reservation.exception.user.NotLoginUserException;
+import com.portfolio.reservation.exception.user.NotMatchedPasswordException;
+import com.portfolio.reservation.repository.user.UserRepository;
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;

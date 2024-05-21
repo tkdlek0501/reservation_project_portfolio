@@ -3,7 +3,7 @@ package com.portfolio.reservation.service;
 
 import com.portfolio.reservation.auth.CustomUserPrincipal;
 import com.portfolio.reservation.domain.user.User;
-import com.portfolio.reservation.repository.UserRepository;
+import com.portfolio.reservation.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.GrantedAuthority;
@@ -28,7 +28,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public CustomUserPrincipal loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        return CustomUserPrincipal.of(userRepository.findOneByUsername(username)
+        return CustomUserPrincipal.of(userRepository.findOneByUsernameAndExpiredAtIsNull(username)
                 .orElseThrow(() -> new UsernameNotFoundException(username + " -> 데이터베이스에서 찾을 수 없습니다.")));
     }
 

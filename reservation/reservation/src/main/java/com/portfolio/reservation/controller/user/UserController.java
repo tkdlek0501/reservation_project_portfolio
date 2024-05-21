@@ -1,22 +1,21 @@
-package com.portfolio.reservation.controller;
+package com.portfolio.reservation.controller.user;
 
 import com.portfolio.reservation.common.CommonResponse;
 import com.portfolio.reservation.dto.user.UserCreateRequest;
 import com.portfolio.reservation.dto.user.UserPasswordUpdateRequest;
 import com.portfolio.reservation.dto.user.UserResponse;
 import com.portfolio.reservation.dto.user.UserUpdateRequest;
-import com.portfolio.reservation.service.UserService;
+import com.portfolio.reservation.service.user.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "User Api", description = "회원 관련 API")
 @Slf4j
 @RestController
-@RequestMapping("/v1.0/user")
+@RequestMapping("/v1.0/users")
 @RequiredArgsConstructor
 public class UserController {
 

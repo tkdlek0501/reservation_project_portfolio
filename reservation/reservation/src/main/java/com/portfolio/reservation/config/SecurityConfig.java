@@ -5,7 +5,7 @@ import com.portfolio.reservation.auth.LoginFailureHandler;
 import com.portfolio.reservation.auth.LoginSuccessJWTProvideHandler;
 import com.portfolio.reservation.filter.JsonUsernamePasswordAuthenticationFilter;
 import com.portfolio.reservation.filter.JwtAuthenticationProcessingFilter;
-import com.portfolio.reservation.repository.UserRepository;
+import com.portfolio.reservation.repository.user.UserRepository;
 import com.portfolio.reservation.service.CustomUserDetailsService;
 import com.portfolio.reservation.service.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -57,8 +57,8 @@ public class SecurityConfig {
                         request -> request
                                 .requestMatchers(
                                         "/h2-console/**",
-                                        "/v1.0/user/login/**",
-                                        "/v1.0/user/signup",
+                                        "/v1.0/users/login/**",
+                                        "/v1.0/users/signup",
                                         "/health",
                                         "/swagger-ui/**",
                                         "/swagger-resources/**",

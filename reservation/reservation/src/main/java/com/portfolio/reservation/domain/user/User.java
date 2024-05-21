@@ -4,20 +4,23 @@ package com.portfolio.reservation.domain.user;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.portfolio.reservation.domain.common.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.springframework.cglib.core.Local;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.logging.Level;
 
 @Entity
 @Table(name = "users")
 @Getter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
+@EntityListeners(AuditingEntityListener.class)
 public class User extends BaseEntity {
 
     @Column(length = 50, unique = true)
@@ -36,6 +39,12 @@ public class User extends BaseEntity {
     // jwt 토큰 추가
     @Column(length = 1000)
     private String refreshToken;
+
+    @CreatedDate
+    private LocalDateTime createdAt;
+
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
 
     private LocalDateTime expiredAt;
 

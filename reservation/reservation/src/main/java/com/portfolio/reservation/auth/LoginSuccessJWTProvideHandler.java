@@ -1,6 +1,6 @@
 package com.portfolio.reservation.auth;
 
-import com.portfolio.reservation.repository.UserRepository;
+import com.portfolio.reservation.repository.user.UserRepository;
 import com.portfolio.reservation.service.JwtService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +28,7 @@ public class LoginSuccessJWTProvideHandler extends SimpleUrlAuthenticationSucces
         String refreshToken = jwtService.createRefreshToken();
 
         jwtService.sendAccessAndRefreshToken(response, accessToken, refreshToken);
-        userRepository.findOneByUsername(username).ifPresent(
+        userRepository.findOneByUsernameAndExpiredAtIsNull(username).ifPresent(
                 users -> users.updateRefreshToken(refreshToken)
         );
 

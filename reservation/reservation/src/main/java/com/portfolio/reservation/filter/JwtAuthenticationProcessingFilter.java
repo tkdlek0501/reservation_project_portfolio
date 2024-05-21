@@ -2,7 +2,7 @@ package com.portfolio.reservation.filter;
 
 import com.portfolio.reservation.auth.CustomUserPrincipal;
 import com.portfolio.reservation.domain.user.User;
-import com.portfolio.reservation.repository.UserRepository;
+import com.portfolio.reservation.repository.user.UserRepository;
 import com.portfolio.reservation.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -16,7 +16,6 @@ import org.springframework.security.core.authority.mapping.GrantedAuthoritiesMap
 import org.springframework.security.core.authority.mapping.NullAuthoritiesMapper;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -63,7 +62,7 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
         jwtService.extractAccessToken(request)
                 .filter(jwtService::isTokenValid)
                 .flatMap(accessToken -> jwtService.extractUsername(accessToken)
-                .flatMap(usersRepository::findOneByUsername)).ifPresent(this::saveAuthentication);
+                .flatMap(usersRepository::findOneByUsernameAndExpiredAtIsNull)).ifPresent(this::saveAuthentication);
 
         filterChain.doFilter(request, response);
     }
@@ -79,7 +78,7 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
     }
 
     private void checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken) {
-        usersRepository.findByRefreshToken(refreshToken).ifPresent(
+        usersRepository.findByRefreshTokenAndExpiredAtIsNull(refreshToken).ifPresent(
                 users -> jwtService.sendAccessToken(response, jwtService.createAccessToken(users.getUsername()))
         );
 

@@ -13,6 +13,8 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserResponse {
 
+    private Long userId;
+
     private String username;
 
     private String nickname;
@@ -22,6 +24,7 @@ public class UserResponse {
     public static UserResponse of(User user) {
 
         return UserResponse.builder()
+                .userId(user.getId())
                 .username(user.getUsername())
                 .nickname(user.getNickname())
                 .authority(user.getAuthority())

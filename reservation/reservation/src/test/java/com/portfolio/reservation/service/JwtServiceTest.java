@@ -5,7 +5,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.portfolio.reservation.domain.user.AuthorityType;
 import com.portfolio.reservation.domain.user.User;
-import com.portfolio.reservation.repository.UserRepository;
+import com.portfolio.reservation.repository.user.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
@@ -19,8 +19,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -124,8 +122,8 @@ public class JwtServiceTest {
         clear();
 
         //then
-        assertThrows(Exception.class, () -> userRepository.findByRefreshToken(refreshToken).get());
-        assertThat(userRepository.findByRefreshToken(reIssuedRefreshToken).get().getUsername()).isEqualTo(username);
+        assertThrows(Exception.class, () -> userRepository.findByRefreshTokenAndExpiredAtIsNull(refreshToken).get());
+        assertThat(userRepository.findByRefreshTokenAndExpiredAtIsNull(reIssuedRefreshToken).get().getUsername()).isEqualTo(username);
     }
 
     // test 통과
@@ -141,9 +139,9 @@ public class JwtServiceTest {
         clear();
 
         //then
-        assertThrows(Exception.class, () -> userRepository.findByRefreshToken(refreshToken).get());
+        assertThrows(Exception.class, () -> userRepository.findByRefreshTokenAndExpiredAtIsNull(refreshToken).get());
 
-        User user = userRepository.findOneByUsername(username).get();
+        User user = userRepository.findOneByUsernameAndExpiredAtIsNull(username).get();
         assertThat(user.getRefreshToken()).isNull();
     }
 

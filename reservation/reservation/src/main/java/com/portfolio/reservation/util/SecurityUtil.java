@@ -1,7 +1,7 @@
 package com.portfolio.reservation.util;
 
 import com.portfolio.reservation.domain.user.User;
-import com.portfolio.reservation.exception.NotLoginUserException;
+import com.portfolio.reservation.exception.user.NotLoginUserException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 

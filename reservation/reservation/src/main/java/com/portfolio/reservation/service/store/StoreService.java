@@ -5,12 +5,14 @@ import com.portfolio.reservation.domain.user.User;
 import com.portfolio.reservation.dto.store.StoreCreateRequest;
 import com.portfolio.reservation.dto.store.StoreResponse;
 import com.portfolio.reservation.dto.store.StoreUpdateRequest;
+import com.portfolio.reservation.dto.store.StoreWithUserDto;
 import com.portfolio.reservation.exception.store.AlreadyExistsStoreException;
 import com.portfolio.reservation.exception.store.NotFoundStoreException;
 import com.portfolio.reservation.exception.user.NotFoundUserException;
 import com.portfolio.reservation.exception.user.NotLoginUserException;
 import com.portfolio.reservation.exception.user.NotMatchedPasswordException;
 import com.portfolio.reservation.repository.store.StoreRepository;
+import com.portfolio.reservation.repository.store.StoreRepositoryCustom;
 import com.portfolio.reservation.repository.user.UserRepository;
 import com.portfolio.reservation.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,8 @@ public class StoreService {
     private final StoreRepository storeRepository;
 
     private final UserRepository userRepository;
+
+    private final StoreRepositoryCustom storeRepositoryCustom;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -87,19 +91,13 @@ public class StoreService {
         Store store = storeRepository.findByUserIdAndExpiredAtIsNull(user.getId())
                 .orElseThrow(NotFoundStoreException::new);
 
-        return StoreResponse.of(store, user.getNickname());
+        return StoreResponse.of(store.getId(), store.getName(), user.getNickname());
     }
 
     public StoreResponse getStore(Long id) {
 
-        Store store = storeRepository.findById(id)
-                .orElseThrow(NotFoundStoreException::new);
+        StoreWithUserDto dto = storeRepositoryCustom.findStoreWithUser(id);
 
-        store.getUserId();
-        User user = userRepository.findById(store.getUserId())
-                .orElseThrow(NotFoundUserException::new);
-        // TODO: store + user join 해서 dto로 가져오기
-
-        return StoreResponse.of(store, user.getNickname());
+        return StoreResponse.of(dto.getStoreId(), dto.getStoreName(), dto.getNickName());
     }
 }

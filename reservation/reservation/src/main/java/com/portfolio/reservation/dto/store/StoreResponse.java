@@ -20,13 +20,14 @@ public class StoreResponse {
     private String nickName;
 
     public static StoreResponse of(
-            Store store,
+            Long storeId,
+            String storeName,
             String nickName
     ) {
 
         return StoreResponse.builder()
-                .storeId(store.getId())
-                .storeName(store.getName())
+                .storeId(storeId)
+                .storeName(storeName)
                 .nickName(nickName)
                 .build();
     }

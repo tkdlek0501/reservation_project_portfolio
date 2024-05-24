@@ -29,7 +29,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @Transactional
 @Slf4j
-public class storeServiceTest {
+public class StoreServiceTest {
 
     @Autowired
     StoreService storeService;

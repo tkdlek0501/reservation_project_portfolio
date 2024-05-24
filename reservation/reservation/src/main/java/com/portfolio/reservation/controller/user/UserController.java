@@ -7,9 +7,11 @@ import com.portfolio.reservation.dto.user.UserResponse;
 import com.portfolio.reservation.dto.user.UserUpdateRequest;
 import com.portfolio.reservation.service.user.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "User Api", description = "회원 관련 API")
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/v1.0/users")
 @RequiredArgsConstructor
+@Validated
 public class UserController {
 
     private final UserService userService;
@@ -26,7 +29,7 @@ public class UserController {
 
     @PostMapping("/signup")
     public ResponseEntity<? extends CommonResponse> signUp(
-            @RequestBody UserCreateRequest request
+            @Valid @RequestBody UserCreateRequest request
     ) {
 
         userService.signUp(request);

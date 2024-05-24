@@ -6,10 +6,9 @@ import com.portfolio.reservation.domain.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Getter
@@ -18,12 +17,25 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Builder
 public class UserCreateRequest {
 
+    @Setter
+    @Size(min = 4, max = 16, message = "아이디는 최소 4자, 최대 16자여야 합니다.")
+    @Pattern(regexp = "^[a-zA-Z0-9]*$", message = "아이디는 영문자와 숫자만 포함할 수 있습니다.")
     private String username; // 아이디
 
+    @Setter
+    @Size(min = 8, max = 20, message = "비밀번호는 최소 8자, 최대 20자여야 합니다.")
+    @Pattern(
+            regexp = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",
+            message = "비밀번호는 최소 하나의 대문자, 소문자, 숫자 및 특수 문자를 포함해야 합니다."
+    )
     private String password; // 비밀번호
 
+    @Setter
+    @Size(min = 4, max = 16, message = "닉네임은 최소 4자, 최대 16자여야 합니다.")
+    @Pattern(regexp = "^[a-zA-Z0-9_-]*$", message = "닉네임은 영문자, 숫자, 언더스코어(_) 및 하이픈(-)만 포함할 수 있습니다.")
     private String nickname; // 닉네임
 
+    @Setter
     private AuthorityType authority; // 권한
 
     public static User toEntity(UserCreateRequest request, PasswordEncoder passwordEncoder) {

@@ -49,4 +49,6 @@ public class UserControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
     }
+
+    // TODO: signUp valid 실패 케이스 테스트
 }

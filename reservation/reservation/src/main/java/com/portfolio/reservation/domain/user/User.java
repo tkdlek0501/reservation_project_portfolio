@@ -3,8 +3,10 @@ package com.portfolio.reservation.domain.user;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.portfolio.reservation.domain.common.BaseEntity;
+import com.portfolio.reservation.domain.reservation.Reservation;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.cglib.core.Local;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -12,6 +14,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 
 @Entity
@@ -22,6 +26,10 @@ import java.util.logging.Level;
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
 public class User extends BaseEntity {
+
+    @OneToMany(mappedBy = "user")
+    @BatchSize(size = 500)
+    private List<Reservation> reservations = new ArrayList<>();
 
     @Column(length = 50, unique = true)
     private String username; // 아이디

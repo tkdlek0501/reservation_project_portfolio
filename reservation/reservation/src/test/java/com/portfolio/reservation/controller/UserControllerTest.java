@@ -17,6 +17,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import static org.mockito.Mockito.doNothing;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
@@ -49,6 +50,112 @@ public class UserControllerTest {
                 .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
     }
+    
+    @Test
+    public void signUp_valid_username_size_테스트() throws Exception {
 
-    // TODO: signUp valid 실패 케이스 테스트
+        UserCreateRequest request = new UserCreateRequest();
+        request.setUsername("u");
+        request.setPassword("Password123!");
+        request.setNickname("hj0501");
+        request.setAuthority(AuthorityType.USER);
+
+        doNothing().when(userService).signUp(request);
+
+        mockMvc.perform(post("/v1.0/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data.username").value("아이디는 최소 4자, 최대 16자여야 합니다."));
+    }
+
+    @Test
+    public void signUp_valid_username_pattern_테스트() throws Exception {
+
+        UserCreateRequest request = new UserCreateRequest();
+        request.setUsername("u___");
+        request.setPassword("Password123!");
+        request.setNickname("hj0501");
+        request.setAuthority(AuthorityType.USER);
+
+        doNothing().when(userService).signUp(request);
+
+        mockMvc.perform(post("/v1.0/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data.username").value("아이디는 영문자와 숫자만 포함할 수 있습니다."));
+    }
+
+    @Test
+    public void signUp_valid_password_size_테스트() throws Exception {
+
+        UserCreateRequest request = new UserCreateRequest();
+        request.setUsername("username");
+        request.setPassword("Passw1!");
+        request.setNickname("hj0501");
+        request.setAuthority(AuthorityType.USER);
+
+        doNothing().when(userService).signUp(request);
+
+        mockMvc.perform(post("/v1.0/users/signup")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data.password").value("비밀번호는 최소 8자, 최대 20자여야 합니다."));
+    }
+
+    @Test
+    public void signUp_valid_password_pattern_테스트() throws Exception {
+
+        UserCreateRequest request = new UserCreateRequest();
+        request.setUsername("username");
+        request.setPassword("Password123!");
+        request.setNickname("hj0501");
+        request.setAuthority(AuthorityType.USER);
+
+        doNothing().when(userService).signUp(request);
+
+        mockMvc.perform(post("/v1.0/users/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data.password").value("비밀번호는 최소 하나의 대문자, 소문자, 숫자 및 특수 문자를 포함해야 합니다."));
+    }
+
+    @Test
+    public void signUp_valid_nickname_size_테스트() throws Exception {
+
+        UserCreateRequest request = new UserCreateRequest();
+        request.setUsername("username");
+        request.setPassword("Password123!");
+        request.setNickname("n_-");
+        request.setAuthority(AuthorityType.USER);
+
+        doNothing().when(userService).signUp(request);
+
+        mockMvc.perform(post("/v1.0/users/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data.nickname").value("닉네임은 최소 4자, 최대 16자여야 합니다."));
+    }
+
+    @Test
+    public void signUp_valid_nickname_pattern_테스트() throws Exception {
+
+        UserCreateRequest request = new UserCreateRequest();
+        request.setUsername("username");
+        request.setPassword("12345678");
+        request.setNickname("nick!!");
+        request.setAuthority(AuthorityType.USER);
+
+        doNothing().when(userService).signUp(request);
+
+        mockMvc.perform(post("/v1.0/users/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.data.nickname").value("닉네임은 영문자, 숫자, 언더스코어(_) 및 하이픈(-)만 포함할 수 있습니다."));
+    }
 }

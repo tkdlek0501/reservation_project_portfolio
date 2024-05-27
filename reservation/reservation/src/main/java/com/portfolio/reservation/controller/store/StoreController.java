@@ -7,9 +7,11 @@ import com.portfolio.reservation.dto.store.StoreUpdateRequest;
 import com.portfolio.reservation.dto.user.UserPasswordUpdateRequest;
 import com.portfolio.reservation.service.store.StoreService;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.service.annotation.DeleteExchange;
 
@@ -18,13 +20,14 @@ import org.springframework.web.service.annotation.DeleteExchange;
 @RestController
 @RequestMapping("/v1.0/stores")
 @RequiredArgsConstructor
+@Validated
 public class StoreController {
 
     private final StoreService storeService;
 
     @PostMapping("")
     public ResponseEntity<? extends CommonResponse> create(
-            @RequestBody StoreCreateRequest request
+            @Valid @RequestBody StoreCreateRequest request
     ) {
 
         storeService.create(request);

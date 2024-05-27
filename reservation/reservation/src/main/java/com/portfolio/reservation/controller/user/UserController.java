@@ -24,9 +24,6 @@ public class UserController {
 
     private final UserService userService;
 
-    // TODO: validation 처리
-    //  -> globalHandler에서 bidingResult 로
-
     @PostMapping("/signup")
     public ResponseEntity<? extends CommonResponse> signUp(
             @Valid @RequestBody UserCreateRequest request
@@ -38,7 +35,7 @@ public class UserController {
 
     @PatchMapping("")
     public ResponseEntity<? extends CommonResponse> update(
-            @RequestBody UserUpdateRequest request
+            @Valid @RequestBody UserUpdateRequest request
     ) {
 
         userService.update(request);
@@ -47,7 +44,7 @@ public class UserController {
 
     @PatchMapping("/password")
     public ResponseEntity<? extends CommonResponse> updatePassword(
-            @RequestBody UserPasswordUpdateRequest request
+            @Valid @RequestBody UserPasswordUpdateRequest request
     ) {
 
         userService.updatePassword(request.getCheckPassword(), request.getUpdatePassword());
@@ -56,7 +53,7 @@ public class UserController {
 
     @DeleteMapping("")
     public ResponseEntity<? extends CommonResponse> delete(
-            @RequestBody UserPasswordUpdateRequest request
+            @Valid @RequestBody UserPasswordUpdateRequest request
     ) {
 
         userService.delete(request.getCheckPassword());

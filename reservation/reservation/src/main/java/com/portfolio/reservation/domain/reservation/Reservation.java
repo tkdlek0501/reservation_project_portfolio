@@ -1,10 +1,7 @@
 package com.portfolio.reservation.domain.reservation;
 
 import com.portfolio.reservation.domain.common.BaseEntity;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedDate;
@@ -23,7 +20,8 @@ import java.util.List;
 @EntityListeners(AuditingEntityListener.class)
 public class Reservation extends BaseEntity {
 
-    @OneToMany(mappedBy = "reservation", cascade = CascadeType.PERSIST)
+    @Builder.Default
+    @OneToMany
     @BatchSize(size = 500)
     private List<ReservationHistory> reservationHistories = new ArrayList<>();
 

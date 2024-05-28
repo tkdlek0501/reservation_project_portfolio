@@ -100,4 +100,10 @@ public class StoreService {
 
         return StoreResponse.of(dto.getStoreId(), dto.getStoreName(), dto.getNickName());
     }
+
+    public Store findByUserId(Long userId) {
+
+        return storeRepository.findByUserIdAndExpiredAtIsNull(userId)
+                .orElseThrow(NotFoundStoreException::new);
+    }
 }

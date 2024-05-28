@@ -7,6 +7,7 @@ import com.querydsl.core.types.dsl.*;
 import com.querydsl.core.types.PathMetadata;
 import javax.annotation.processing.Generated;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.dsl.PathInits;
 
 
 /**
@@ -35,6 +36,8 @@ public class QUser extends EntityPathBase<User> {
     public final StringPath password = createString("password");
 
     public final StringPath refreshToken = createString("refreshToken");
+
+    public final ListPath<com.portfolio.reservation.domain.reservation.Reservation, com.portfolio.reservation.domain.reservation.QReservation> reservations = this.<com.portfolio.reservation.domain.reservation.Reservation, com.portfolio.reservation.domain.reservation.QReservation>createList("reservations", com.portfolio.reservation.domain.reservation.Reservation.class, com.portfolio.reservation.domain.reservation.QReservation.class, PathInits.DIRECT2);
 
     public final DateTimePath<java.time.LocalDateTime> updatedAt = createDateTime("updatedAt", java.time.LocalDateTime.class);
 

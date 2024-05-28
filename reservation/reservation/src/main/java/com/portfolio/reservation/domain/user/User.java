@@ -27,7 +27,8 @@ import java.util.logging.Level;
 @EntityListeners(AuditingEntityListener.class)
 public class User extends BaseEntity {
 
-    @OneToMany(mappedBy = "user")
+    @Builder.Default
+    @OneToMany
     @BatchSize(size = 500)
     private List<Reservation> reservations = new ArrayList<>();
 

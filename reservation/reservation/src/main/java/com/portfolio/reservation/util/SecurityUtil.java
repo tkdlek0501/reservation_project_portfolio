@@ -8,6 +8,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @Slf4j
 public class SecurityUtil {
 
+    public static User getLonginUser() {
+        try {
+            return (User) SecurityContextHolder.getContext()
+                    .getAuthentication().getPrincipal();
+        } catch (Exception e) {
+            log.info("로그인 정보 가져오기 실패 : {}", e.getMessage());
+            throw new NotLoginUserException();
+        }
+    }
+
     public static String getLoginUsername() {
         try {
             User user = (User) SecurityContextHolder.getContext()

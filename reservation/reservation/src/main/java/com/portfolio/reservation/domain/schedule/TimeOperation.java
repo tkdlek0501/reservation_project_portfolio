@@ -2,8 +2,10 @@ package com.portfolio.reservation.domain.schedule;
 
 import com.portfolio.reservation.domain.common.BaseEntity;
 import com.portfolio.reservation.domain.timetable.TimeTable;
+import com.portfolio.reservation.dto.schedule.TimeOperationRequest;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToMany;
 import lombok.*;
 import org.apache.ibatis.annotations.One;
@@ -25,7 +27,8 @@ import java.util.List;
 @EntityListeners(AuditingEntityListener.class)
 public class TimeOperation extends BaseEntity {
 
-    @OneToMany(mappedBy = "timeOperation")
+    @Builder.Default
+    @OneToMany
     @BatchSize(size = 500)
     private List<TimeTable> timeTables = new ArrayList<>();
 
@@ -42,4 +45,17 @@ public class TimeOperation extends BaseEntity {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    public static TimeOperation create(
+            Long dateOperationId,
+            TimeOperationRequest request
+    ) {
+
+        return TimeOperation.builder()
+                .dateOperationId(dateOperationId)
+                .startTime(request.getStartTime())
+                .endTime(request.getEndTime())
+                .maxPerson(request.getMaxPerson())
+                .build();
+    }
 }

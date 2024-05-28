@@ -1,5 +1,6 @@
 package com.portfolio.reservation.domain.schedule.type;
 
+import com.portfolio.reservation.exception.InvalidEnumValueException;
 import lombok.Getter;
 
 @Getter
@@ -14,5 +15,13 @@ public enum SameDayApprovalType {
     SameDayApprovalType(String value, int hour) {
         this.value = value;
         this.hour = hour;
+    }
+
+    public static SameDayApprovalType convertStringToEnum(String value) throws InvalidEnumValueException {
+        try {
+            return SameDayApprovalType.valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new InvalidEnumValueException(value);
+        }
     }
 }

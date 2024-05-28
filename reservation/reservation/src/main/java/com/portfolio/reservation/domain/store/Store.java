@@ -32,19 +32,23 @@ public class Store extends BaseEntity {
     // user 와 1:1 관계
     // OneToOne 이므로 N+1 관리 측면에서 연관관계 설정 별도 x
 
-    @OneToMany(mappedBy = "store")
+    @Builder.Default
+    @OneToMany
     @BatchSize(size = 500)
     private List<Schedule> schedules = new ArrayList<>();
 
-    @OneToMany(mappedBy = "store")
+    @Builder.Default
+    @OneToMany
     @BatchSize(size = 500)
     private List<DateTable> dateTables = new ArrayList<>();
 
-    @OneToMany(mappedBy = "store")
+    @Builder.Default
+    @OneToMany
     @BatchSize(size = 500)
     private List<TimeTable> timeTables = new ArrayList<>();
 
-    @OneToMany(mappedBy = "store")
+    @Builder.Default
+    @OneToMany
     @BatchSize(size = 500)
     private List<Reservation> reservations = new ArrayList<>();
 

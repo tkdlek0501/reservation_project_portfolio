@@ -75,4 +75,10 @@ public class DateOperation extends BaseEntity {
                 .maxPerson(request.getMaxPerson())
                 .build();
     }
+
+    public void update(LocalDate startDate, LocalDate endDate) {
+
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
 }

@@ -9,6 +9,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -27,7 +28,8 @@ public class DateOperationRepositoryCustom {
                 .from(dateOperation)
                 .where(
                         scheduleEq(schedule),
-                        expiredAtIsNull()
+                        expiredAtIsNull(),
+                        futureDates()
                 )
                 .fetch();
     }
@@ -40,12 +42,14 @@ public class DateOperationRepositoryCustom {
         return dateOperation.expiredAt.isNull();
     }
 
-//    private BooleanExpression futureDates() {
+    private BooleanExpression futureDates() {
+
+        return dateOperation.endDate.after(LocalDate.now()).or(dateOperation.endDate.eq(LocalDate.now()));
 //        BooleanExpression onCondition = dateOperation.isEndless.eq(false)
 //                .and(dateOperation.endDate.after(LocalDate.now()).or(dateOperation.endDate.eq(LocalDate.now())));
-//
+
 //        BooleanExpression offCondition = dateOperation.isEndless.eq(true);
 //
 //        return onCondition.or(offCondition);
-//    }
+    }
 }

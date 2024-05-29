@@ -2,6 +2,8 @@ package com.portfolio.reservation.dto.schedule;
 
 import com.portfolio.reservation.domain.schedule.type.TimeUnitType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,18 +19,23 @@ import java.util.List;
 @AllArgsConstructor
 public class DateOperationRequest {
 
+    @NotNull
     @Schema(description = "시작일")
     private LocalDate startDate;
 
+    @NotNull
     @Schema(description = "종료일")
     private LocalDate endDate;
 
+    @NotNull
     @Schema(description = "시간 단위")
     private TimeUnitType timeUnit;
 
+    @NotNull
     @Schema(description = "해당 날짜 최대 가능 인원")
     private int maxPerson;
 
     @Schema(description = "시간 기준 운영 시간")
+    @Valid
     private List<TimeOperationRequest> timeOperationRequests = new ArrayList<>();
 }

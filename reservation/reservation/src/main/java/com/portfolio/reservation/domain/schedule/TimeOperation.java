@@ -2,6 +2,7 @@ package com.portfolio.reservation.domain.schedule;
 
 import com.portfolio.reservation.domain.common.BaseEntity;
 import com.portfolio.reservation.domain.timetable.TimeTable;
+import com.portfolio.reservation.dto.operation.TimeOperationUpdateRequest;
 import com.portfolio.reservation.dto.schedule.TimeOperationRequest;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -46,9 +47,24 @@ public class TimeOperation extends BaseEntity {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    private LocalDateTime expiredAt;
+
     public static TimeOperation create(
             Long dateOperationId,
             TimeOperationRequest request
+    ) {
+
+        return TimeOperation.builder()
+                .dateOperationId(dateOperationId)
+                .startTime(request.getStartTime())
+                .endTime(request.getEndTime())
+                .maxPerson(request.getMaxPerson())
+                .build();
+    }
+
+    public static TimeOperation create(
+            Long dateOperationId,
+            TimeOperationUpdateRequest request
     ) {
 
         return TimeOperation.builder()

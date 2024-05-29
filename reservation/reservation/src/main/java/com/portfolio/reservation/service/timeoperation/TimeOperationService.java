@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -17,6 +18,10 @@ public class TimeOperationService {
 
     public List<TimeOperation> save(List<TimeOperation> timeOperationList) {
         return timeOperationRepository.saveAll(timeOperationList);
+    }
+
+    public void bulkExpire(List<Long> ids) {
+        timeOperationRepository.bulkExpire(ids, LocalDateTime.now());
     }
 }
 

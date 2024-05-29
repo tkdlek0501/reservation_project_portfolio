@@ -6,6 +6,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -15,5 +18,10 @@ public class DateTableService {
 
     public DateTable save(DateTable dateTable) {
         return dateTableRepository.save(dateTable);
+    }
+
+    public void bulkExpireByDateOperationIds(List<Long> dateOperationIds) {
+
+        dateTableRepository.bulkExpireByDateOperationIds(dateOperationIds, LocalDateTime.now());
     }
 }

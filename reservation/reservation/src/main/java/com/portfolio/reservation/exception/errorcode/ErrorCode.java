@@ -19,7 +19,15 @@ public enum ErrorCode {
 
     EXCEED_DATEOPERATION_SIZE("DO001", "기본 운영 방식은 3개까지 등록 가능합니다."),
 
-    OVERLAP_DATEOPERATION("DO002", "기존 운영 방식과 일자가 중복됩니다.")
+    OVERLAP_DATEOPERATION("DO002", "기존 운영 방식과 일자가 중복됩니다."),
+
+    NOT_FOUND_DATEOPERATION("DO003", "운영 날짜가 존재하지 않습니다."),
+
+    EXCEED_OPERATION_DATE("OPR001", "기본 운영 방식은 시작일과 종료일의 차이가 30일이 넘으면 안됩니다."),
+
+    OVERLAP_DATES_OPERATION("OPR002", "각 운영 방식의 일자가 중복됩니다."),
+
+    OVERLAP_TIME_OPERATION("OPR003", "같은 날짜에 겹치는 예약 시간이 존재합니다.")
     ;
 
     private final String code;

@@ -88,4 +88,10 @@ public class UserService {
 
         return UserResponse.of(user);
     }
+
+    public User getUserByUsername() {
+
+        return userRepository.findOneByUsernameAndExpiredAtIsNull(SecurityUtil.getLoginUsername())
+                .orElseThrow(NotLoginUserException::new);
+    }
 }

@@ -12,6 +12,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -40,7 +41,11 @@ public class TimeTable extends BaseEntity {
 
     private Long timeOperationId;
 
+    private LocalDate date;
+
     private LocalTime time;
+
+    private int maxPerson;
 
     private boolean available; // 해당 시간 활성 여부
 
@@ -58,7 +63,9 @@ public class TimeTable extends BaseEntity {
             Long dateTableId,
             Long dateOperationId,
             Long timeOperationId,
-            LocalTime time
+            LocalDate date,
+            LocalTime time,
+            int maxPerson
     ) {
 
         return TimeTable.builder()
@@ -67,7 +74,9 @@ public class TimeTable extends BaseEntity {
                 .dateTableId(dateTableId)
                 .dateOperationId(dateOperationId)
                 .timeOperationId(timeOperationId)
+                .date(date)
                 .time(time)
+                .maxPerson(maxPerson)
                 .available(true)
                 .build();
     }

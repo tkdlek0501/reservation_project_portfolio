@@ -41,9 +41,9 @@ public class DateTable extends BaseEntity {
 
     private int maxPerson; // 해당 데이트테이블 최대 인원수
 
-    private boolean dailyAvailable; // 해당 일자 예약 사용 여부
+    private boolean available; // 해당 일자 예약 사용 여부
 
-    private boolean isHourlySetting; // 인원을 시간대별로 설정할 지 여부
+    private boolean isHourlySetting; // 인원을 timeTable 설정대로 적용할지 여부
 
     @CreatedDate
     private LocalDateTime createdAt;
@@ -68,7 +68,7 @@ public class DateTable extends BaseEntity {
                 .timeOperationId(timeOperationId)
                 .date(date)
                 .maxPerson(maxPerson)
-                .dailyAvailable(true)
+                .available(true)
                 .isHourlySetting(false)
                 .build();
     }

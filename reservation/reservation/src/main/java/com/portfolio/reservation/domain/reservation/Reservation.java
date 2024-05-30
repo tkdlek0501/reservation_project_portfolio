@@ -31,11 +31,11 @@ public class Reservation extends BaseEntity {
 
     private Long timeTableId;
 
-    private String status;
+    private ReservationStatus status;
 
     private LocalDateTime requestDateTime;
 
-    private int person;
+    private int persons;
 
     private String lastReason;
 
@@ -44,4 +44,6 @@ public class Reservation extends BaseEntity {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    private LocalDateTime expiredAt;
 }

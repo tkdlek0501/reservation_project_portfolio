@@ -31,10 +31,6 @@ public class DateOperationRequest {
     @Schema(description = "시간 단위")
     private TimeUnitType timeUnit;
 
-    @NotNull
-    @Schema(description = "해당 날짜 최대 가능 인원")
-    private int maxPerson;
-
     @Schema(description = "시간 기준 운영 시간")
     @Valid
     private List<TimeOperationRequest> timeOperationRequests = new ArrayList<>();

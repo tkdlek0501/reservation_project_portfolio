@@ -1,20 +1,19 @@
 package com.portfolio.reservation.service.businessservice;
 
+import com.portfolio.reservation.domain.reservation.Reservation;
 import com.portfolio.reservation.domain.schedule.DateOperation;
 import com.portfolio.reservation.domain.schedule.Schedule;
 import com.portfolio.reservation.domain.schedule.TimeOperation;
 import com.portfolio.reservation.domain.schedule.type.TimeUnitType;
-import com.portfolio.reservation.domain.store.Store;
 import com.portfolio.reservation.domain.timetable.DateTable;
 import com.portfolio.reservation.domain.timetable.TimeTable;
 import com.portfolio.reservation.dto.operation.*;
 import com.portfolio.reservation.dto.schedule.DateOperationRequest;
 import com.portfolio.reservation.dto.schedule.TimeOperationRequest;
-import com.portfolio.reservation.exception.schedule.NotFoundScheduleException;
+import com.portfolio.reservation.repository.timetable.TimeTableRepository;
 import com.portfolio.reservation.service.dateoperation.DateOperationService;
 import com.portfolio.reservation.service.datetable.DateTableService;
 import com.portfolio.reservation.service.schedule.ScheduleService;
-import com.portfolio.reservation.service.store.StoreService;
 import com.portfolio.reservation.service.timeoperation.TimeOperationService;
 import com.portfolio.reservation.service.timetable.TimeTableService;
 import lombok.RequiredArgsConstructor;
@@ -22,11 +21,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,16 +31,11 @@ import java.util.stream.Collectors;
 public class OperationService {
 
     private final ScheduleService scheduleService;
-
-    private final StoreService storeService;
-
     private final DateOperationService dateOperationService;
-
     private final TimeOperationService timeOperationService;
-
     private final DateTableService dateTableService;
-
     private final TimeTableService timeTableService;
+    private final ReservationService reservationService;
 
     /**
      * 기본 운영 시간을 생성합니다.
@@ -100,7 +91,7 @@ public class OperationService {
 
         LocalTime currentTime = timeOperation.getStartTime();
         while (currentTime.isBefore(timeOperation.getEndTime())) {
-            timeTablesForADay.add(TimeTable.create(storeId, scheduleId, dateTable.getId(), dateOperation.getId(), timeOperation.getId(), currentTime));
+            timeTablesForADay.add(TimeTable.create(storeId, scheduleId, dateTable.getId(), dateOperation.getId(), timeOperation.getId(), dateTable.getDate(), currentTime, 0));
             currentTime = getCurrentTimeByTimeUnit(dateOperation, currentTime);
         }
 
@@ -140,15 +131,12 @@ public class OperationService {
      * 기본 운영 방식을 수정합니다.
      */
     @Transactional
-    public void updateDateOperation(DateOperationUpdateRequests request) {
+    public void updateDateOperation(Long storeId, DateOperationUpdateRequests request) {
 
         List<Long> dateOperationIds = request.getDateOperations()
                 .stream()
                 .map(DateOperationUpdateRequest::getDateOperationId)
                 .collect(Collectors.toList());
-
-//        TODO: storeId 가져오기
-//        Long storeId = 
 
         // 기존 dateTable, timeTable 모두 expire
         dateTableService.bulkExpireByDateOperationIds(dateOperationIds);
@@ -180,11 +168,81 @@ public class OperationService {
             );
             List<TimeOperation> createdTimeOperations = timeOperationService.save(createTimeOperations);
 
-            LocalDate startDate = dateOperation.getStartDate();
-            LocalDate finishDate = dateOperation.getEndDate();
-
-            // Long storeId, Schedule schedule, DateOperation dateOperation, List<TimeOperation> timeOperations, LocalDate finishDate, LocalDate currentDate
-//            saveTimeTableBetweenStartAndEnd(storeId, dateOperation.getScheduleId(), dateOperation, createdTimeOperations, finishDate, startDate);
+            saveTimeTableBetweenStartAndEnd(storeId, dateOperation.getScheduleId(), dateOperation, createdTimeOperations, dateOperation.getEndDate(), dateOperation.getStartDate());
         }
     }
+
+    /*
+     * 기본 운영 방식을 삭제합니다.
+    */
+    @Transactional
+    public void deleteDateOperation(Long dateOperationId) {
+
+        DateOperation dateOperation = dateOperationService.findById(dateOperationId);
+        dateOperation.expire();
+
+        List<Long> toIds = dateOperation.getTimeOperations()
+                .stream()
+                .map(TimeOperation::getId)
+                .collect(Collectors.toList());
+
+        timeOperationService.bulkExpire(toIds);
+
+        List<Long> ids = Collections.singletonList(dateOperationId);
+        // date/ timeTable 조정
+        dateTableService.bulkExpireByDateOperationIds(ids);
+        timeTableService.bulkExpireByDateOperationIds(ids);
+    }
+
+    // 예약 스케줄 기간 조회
+    public List<DateTableResponse> getTimeTable(Long storeId, SearchTimeTableRequest request) {
+
+        List<TimeTableWithDateTableDto> timeTableDtos = timeTableService.search(storeId, request.getStartDate(), request.getEndDate());
+
+        Map<Long, List<TimeTableWithDateTableDto>> map = timeTableDtos
+                .stream()
+                .collect(Collectors.groupingBy(TimeTableWithDateTableDto::getDateTableId));
+
+        List<Long> timeTableIds = timeTableDtos.stream()
+                        .map(TimeTableWithDateTableDto::getTimeTableId)
+                        .collect(Collectors.toList());
+        List<Reservation> reservations = reservationService.getActive(timeTableIds);
+        Map<Long, List<Reservation>> reservationMap = reservations
+                .stream()
+                .collect(Collectors.groupingBy(Reservation::getTimeTableId));
+
+        List<DateTableResponse> responses = new ArrayList<>();
+        map.forEach((key, value) -> {
+            responses.add(DateTableResponse.of(key, value, reservationMap));
+        });
+
+        // TODO: 위에서 조회할 때 없으면 바로 throw 하기
+//        if(responses.isEmpty()) {
+//            throw new CoreException(CodeMessage.NOT_FOUND.getCode(), "해당 기간 내 타임테이블이 조회되지 않습니다.");
+//        }
+
+        // TODO: 휴일 관리 작업
+        // 매장의 휴일 목록
+//        List<LocalDate> holidayCalanders = this.scheduleHolidayCalanderRepository.findScheduleHolidayByStoreId(storeId, BookConstants.maxReservationDays)
+//                .stream()
+//                .map(p -> p.getHoliday())
+//                .collect(Collectors.toList());
+
+        // 휴무일이면 response 내 isHoliday = true 로 수정
+//        responses
+//                .stream()
+//                .filter(response -> holidayCalanders.contains(response.getDate()))
+//                .forEach(response -> response.changeIsHoliday(true));
+
+        return responses
+                .stream()
+                .sorted(Comparator.comparing(DateTableResponse::getDate))
+                .collect(Collectors.toList());
+    }
+
+    // TODO: 예약 가능 인원 수정
+
+    // TODO: 당일 예약 관련 설정 수정
+
+    // TODO: 해당 dateTable 및 timeTable 수정
 }

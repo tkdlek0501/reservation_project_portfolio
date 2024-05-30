@@ -52,8 +52,6 @@ public class DateOperation extends BaseEntity {
 
     private LocalDate endDate;
 
-    private int maxPerson;
-
     @CreatedDate
     private LocalDateTime createdAt;
 
@@ -72,7 +70,6 @@ public class DateOperation extends BaseEntity {
                 .timeUnit(request.getTimeUnit())
                 .startDate(request.getStartDate())
                 .endDate(request.getEndDate())
-                .maxPerson(request.getMaxPerson())
                 .build();
     }
 
@@ -80,5 +77,10 @@ public class DateOperation extends BaseEntity {
 
         this.startDate = startDate;
         this.endDate = endDate;
+    }
+
+    public void expire() {
+
+        this.expiredAt = LocalDateTime.now();
     }
 }

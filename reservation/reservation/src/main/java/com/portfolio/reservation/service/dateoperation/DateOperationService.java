@@ -31,7 +31,6 @@ import java.util.stream.IntStream;
 public class DateOperationService {
 
     private final DateOperationRepository dateOperationRepository;
-
     private final DateOperationRepositoryCustom dateOperationRepositoryCustom;
 
     public void checkAlreadyExist(DateOperationRequest request, Schedule schedule) {
@@ -69,7 +68,12 @@ public class DateOperationService {
 
     public void validateDateOperation(DateOperationUpdateRequests request) {
 
-        // TODO: startDate, endDate 차이가 30일 넘으면 안됨
+        for (DateOperationUpdateRequest dateOperation : request.getDateOperations()) {
+            long daysBetween = ChronoUnit.DAYS.between(dateOperation.getStartDate(), dateOperation.getEndDate());
+            if (daysBetween > 30) {
+                throw new ExceedDateOperationDateException();
+            }
+        }
 
         List<LocalDate> startDates = request.getDateOperations()
                 .stream()

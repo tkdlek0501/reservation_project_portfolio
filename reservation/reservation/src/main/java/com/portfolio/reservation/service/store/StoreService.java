@@ -14,6 +14,7 @@ import com.portfolio.reservation.exception.user.NotMatchedPasswordException;
 import com.portfolio.reservation.repository.store.StoreRepository;
 import com.portfolio.reservation.repository.store.StoreRepositoryCustom;
 import com.portfolio.reservation.repository.user.UserRepository;
+import com.portfolio.reservation.service.user.UserService;
 import com.portfolio.reservation.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -26,23 +27,14 @@ import org.springframework.transaction.annotation.Transactional;
 public class StoreService {
 
     private final StoreRepository storeRepository;
-
-    private final UserRepository userRepository;
-
     private final StoreRepositoryCustom storeRepositoryCustom;
-
+    private final UserService userService;
     private final PasswordEncoder passwordEncoder;
-
-    // TODO: 서비스간 계층 구조 따르기
-    // store 는 하위 서비스
-//    하위 서비스: 특정 도메인이나 기능에 대해 명확한 책임을 가지고 독립적으로 동작합니다. 예를 들어, 결제 처리, 재고 관리, 사용자 인증 등 특정 기능을 수행하는 서비스입니다.
-//    상위 서비스: 여러 하위 서비스를 조합하여 더 복잡한 비즈니스 로직을 처리합니다. 상위 서비스는 비즈니스 프로세스나 워크플로우를 관리하고 조정합니다.
 
     @Transactional
     public void create(StoreCreateRequest request) {
 
-        User user = userRepository.findOneByUsernameAndExpiredAtIsNull(SecurityUtil.getLoginUsername())
-                .orElseThrow(NotLoginUserException::new);
+        User user = userService.getUserByUsername();
 
         if (storeRepository.findByNameAndExpiredAtIsNull(request.getName()).isPresent()) {
             throw new AlreadyExistsStoreException();
@@ -56,8 +48,7 @@ public class StoreService {
     @Transactional
     public void update(StoreUpdateRequest request) {
 
-        User user = userRepository.findOneByUsernameAndExpiredAtIsNull(SecurityUtil.getLoginUsername())
-                .orElseThrow(NotLoginUserException::new);
+        User user = userService.getUserByUsername();
 
         Store store = storeRepository.findByUserIdAndExpiredAtIsNull(user.getId())
                 .orElseThrow(NotFoundStoreException::new);
@@ -70,8 +61,7 @@ public class StoreService {
     @Transactional
     public void delete(String checkPassword) {
 
-        User user = userRepository.findOneByUsernameAndExpiredAtIsNull(SecurityUtil.getLoginUsername())
-                .orElseThrow(NotLoginUserException::new);
+        User user = userService.getUserByUsername();
 
         if (!user.matchPassword(passwordEncoder, checkPassword)) {
             throw new NotMatchedPasswordException();
@@ -85,8 +75,7 @@ public class StoreService {
 
     public StoreResponse getMyStore() {
 
-        User user = userRepository.findOneByUsernameAndExpiredAtIsNull(SecurityUtil.getLoginUsername())
-                .orElseThrow(NotLoginUserException::new);
+        User user = userService.getUserByUsername();
 
         Store store = storeRepository.findByUserIdAndExpiredAtIsNull(user.getId())
                 .orElseThrow(NotFoundStoreException::new);

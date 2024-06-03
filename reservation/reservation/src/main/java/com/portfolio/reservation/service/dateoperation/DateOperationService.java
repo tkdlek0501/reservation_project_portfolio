@@ -6,7 +6,7 @@ import com.portfolio.reservation.dto.operation.DateOperationUpdateRequest;
 import com.portfolio.reservation.dto.operation.DateOperationUpdateRequests;
 import com.portfolio.reservation.dto.operation.TimeOperationUpdateRequest;
 import com.portfolio.reservation.dto.schedule.DateOperationRequest;
-import com.portfolio.reservation.exception.dateoperation.NotFoundDateOperationException;
+import com.portfolio.reservation.exception.operation.NotFoundDateOperationException;
 import com.portfolio.reservation.exception.operation.ExceedDateOperationSizeException;
 import com.portfolio.reservation.exception.operation.OverlapDateOperationException;
 import com.portfolio.reservation.exception.operation.ExceedDateOperationDateException;

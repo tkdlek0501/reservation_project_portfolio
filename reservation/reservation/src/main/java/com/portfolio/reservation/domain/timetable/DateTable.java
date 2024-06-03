@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -71,5 +72,17 @@ public class DateTable extends BaseEntity {
                 .available(true)
                 .isHourlySetting(false)
                 .build();
+    }
+
+    public void updateDailyAvailable(boolean available) {
+
+        this.available = available;
+    }
+
+    public void update(boolean available, int maxPersonOfDay, Boolean isHourlySetting) {
+
+        this.available = available;
+        this.maxPerson = maxPersonOfDay;
+        this.isHourlySetting = !Objects.isNull(isHourlySetting) && isHourlySetting;
     }
 }

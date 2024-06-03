@@ -2,6 +2,7 @@ package com.portfolio.reservation.domain.timetable;
 
 import com.portfolio.reservation.domain.common.BaseEntity;
 import com.portfolio.reservation.domain.reservation.Reservation;
+import com.portfolio.reservation.dto.operation.TimeTableRequest;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.JoinColumn;
@@ -79,5 +80,11 @@ public class TimeTable extends BaseEntity {
                 .maxPerson(maxPerson)
                 .available(true)
                 .build();
+    }
+
+    public void update(TimeTableRequest request) {
+
+        this.available = request.isAvailable();
+        this.maxPerson = request.getMaxPersonOfTime();
     }
 }

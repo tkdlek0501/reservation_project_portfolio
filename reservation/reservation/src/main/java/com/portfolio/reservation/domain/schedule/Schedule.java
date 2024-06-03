@@ -4,6 +4,7 @@ import com.portfolio.reservation.domain.common.BaseEntity;
 import com.portfolio.reservation.domain.schedule.type.SameDayApprovalType;
 import com.portfolio.reservation.domain.timetable.DateTable;
 import com.portfolio.reservation.domain.timetable.TimeTable;
+import com.portfolio.reservation.dto.operation.ScheduleSameDayRequest;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
@@ -87,6 +88,26 @@ public class Schedule extends BaseEntity {
                 .requestMaxPerson(requestMaxPerson)
                 .requestMinPerson(requestMinPerson)
                 .build();
+    }
+
+    public void updateLimitCount(
+            Integer requestMinPerson,
+            Integer requestMaxPerson
+    ) {
+        if (requestMinPerson != null) {
+            this.requestMinPerson = requestMinPerson;
+        }
+        if (requestMaxPerson != null) {
+            this.requestMaxPerson = requestMaxPerson;
+        }
+    }
+
+    public void updateScheduleSameDay(
+            SameDayApprovalType sameDayRequestApproval,
+            SameDayApprovalType sameDayCancelApproval) {
+
+        this.sameDayRequestApproval = sameDayRequestApproval;
+        this.sameDayCancelApproval = sameDayCancelApproval;
     }
 
 //    @PrePersist

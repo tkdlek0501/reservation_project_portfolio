@@ -1,4 +1,4 @@
-package com.portfolio.reservation.exception.dateoperation;
+package com.portfolio.reservation.exception.operation;
 
 import com.portfolio.reservation.common.CustomException;
 import com.portfolio.reservation.exception.errorcode.ErrorCode;

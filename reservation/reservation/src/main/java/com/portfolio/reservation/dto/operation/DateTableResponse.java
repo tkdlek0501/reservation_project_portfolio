@@ -1,10 +1,7 @@
 package com.portfolio.reservation.dto.operation;
 
 import com.portfolio.reservation.domain.reservation.Reservation;
-import com.portfolio.reservation.domain.reservation.ReservationStatus;
 import com.portfolio.reservation.domain.schedule.type.TimeUnitType;
-import com.portfolio.reservation.domain.timetable.DateTable;
-import com.portfolio.reservation.domain.timetable.TimeTable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -66,8 +63,8 @@ public class DateTableResponse {
             isHourlySetting = dto.getIsHourlySetting();
         }
 
-        LocalTime minTime = makeStartDateOfDateTable(dtos);
-        LocalTime maxTime = makeEndDateOfDateTable(dtos, timeUnit);
+        LocalTime minTime = makeStartDateOfDto(dtos);
+        LocalTime maxTime = makeEndDateOfDto(dtos, timeUnit);
 
         return DateTableResponse.builder()
                 .timeUnit(timeUnit)
@@ -91,7 +88,7 @@ public class DateTableResponse {
         this.isHoliday = isHoliday;
     }
 
-    private static LocalTime makeStartDateOfDateTable(List<TimeTableWithDateTableDto> dtos) {
+    private static LocalTime makeStartDateOfDto(List<TimeTableWithDateTableDto> dtos) {
 
         return dtos
                 .stream()
@@ -100,7 +97,7 @@ public class DateTableResponse {
                 .orElse(null);
     }
 
-    private static LocalTime makeEndDateOfDateTable(List<TimeTableWithDateTableDto> dtos,
+    private static LocalTime makeEndDateOfDto(List<TimeTableWithDateTableDto> dtos,
                                                    TimeUnitType timeUnit) {
 
         return dtos

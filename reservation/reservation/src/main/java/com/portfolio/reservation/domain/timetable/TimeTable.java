@@ -2,6 +2,7 @@ package com.portfolio.reservation.domain.timetable;
 
 import com.portfolio.reservation.domain.common.BaseEntity;
 import com.portfolio.reservation.domain.reservation.Reservation;
+import com.portfolio.reservation.domain.schedule.type.TimeUnitType;
 import com.portfolio.reservation.dto.operation.TimeTableRequest;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -17,7 +18,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 @Entity
 @Getter
@@ -86,5 +89,30 @@ public class TimeTable extends BaseEntity {
 
         this.available = request.isAvailable();
         this.maxPerson = request.getMaxPersonOfTime();
+    }
+
+    public static LocalTime makeStartDateOfDateTable(List<TimeTable> timeTables) {
+
+        return timeTables
+                .stream()
+                .filter(tt -> Objects.isNull(tt.getExpiredAt()))
+                .min(Comparator.comparing(TimeTable::getTime))
+                .map(TimeTable::getTime)
+                .orElse(null);
+    }
+
+    // 하나의 dateTable 내 timeTable 리스트를 통해 운영 종료 시간 추출
+    public static LocalTime makeEndDateOfDateTable(
+            List<TimeTable> timeTables, TimeUnitType timeUnit) {
+
+        return timeTables
+                .stream()
+                .filter(tt -> Objects.isNull(tt.getExpiredAt()))
+                .max(Comparator.comparing(TimeTable::getTime))
+                .map(tt -> switch (timeUnit) {
+                    case HALF -> tt.getTime().plusMinutes(30);
+                    case HOUR -> tt.getTime().plusHours(1);
+                })
+                .orElse(null);
     }
 }

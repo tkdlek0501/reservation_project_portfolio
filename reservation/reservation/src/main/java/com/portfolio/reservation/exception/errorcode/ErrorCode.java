@@ -36,7 +36,11 @@ public enum ErrorCode {
 
     NOT_SEARCH_TIME_TABLE("OPR007", "해당 기간 내 타임테이블이 조회되지 않습니다."),
 
-    NOT_FOUND_DATETABLE("OPR008", "해당 일자에 설정된 예약이 없습니다.")
+    NOT_FOUND_DATETABLE("OPR008", "해당 일자에 설정된 예약이 없습니다."),
+
+    NOT_ALLOWED_TIME("OPR009", "시작 시간은 종료 시간보다 이전 시간이어야 합니다."),
+
+
     ;
 
     private final String code;

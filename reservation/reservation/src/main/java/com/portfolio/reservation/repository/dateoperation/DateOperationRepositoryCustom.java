@@ -4,6 +4,8 @@ import com.portfolio.reservation.domain.schedule.DateOperation;
 import com.portfolio.reservation.domain.schedule.QDateOperation;
 import com.portfolio.reservation.domain.schedule.QSchedule;
 import com.portfolio.reservation.domain.schedule.Schedule;
+import com.portfolio.reservation.domain.schedule.type.TimeUnitType;
+import com.portfolio.reservation.domain.timetable.QDateTable;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -11,15 +13,16 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Repository
 @RequiredArgsConstructor
 public class DateOperationRepositoryCustom {
 
     private final JPAQueryFactory queryFactory;
-
-    QSchedule schedule = QSchedule.schedule;
     QDateOperation dateOperation = QDateOperation.dateOperation;
+    QDateTable dateTable = QDateTable.dateTable;
 
     public List<DateOperation> getAllUse(Schedule schedule) {
 
@@ -51,5 +54,19 @@ public class DateOperationRepositoryCustom {
 //        BooleanExpression offCondition = dateOperation.isEndless.eq(true);
 //
 //        return onCondition.or(offCondition);
+    }
+
+    public List<DateOperation> getDateOperationsByDateTableIds(List<Long> dateTableIds) {
+
+        return queryFactory
+                .select(dateOperation)
+                .from(dateOperation)
+                .leftJoin(dateTable)
+                .on(dateTable.dateOperationId.eq(dateOperation.id))
+                .where(
+                        dateTable.id.in(dateTableIds),
+                        dateOperation.expiredAt.isNull()
+                )
+                .fetch();
     }
 }

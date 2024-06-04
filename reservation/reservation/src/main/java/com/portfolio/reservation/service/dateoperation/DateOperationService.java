@@ -2,6 +2,7 @@ package com.portfolio.reservation.service.dateoperation;
 
 import com.portfolio.reservation.domain.schedule.DateOperation;
 import com.portfolio.reservation.domain.schedule.Schedule;
+import com.portfolio.reservation.domain.schedule.type.TimeUnitType;
 import com.portfolio.reservation.dto.operation.DateOperationUpdateRequest;
 import com.portfolio.reservation.dto.operation.DateOperationUpdateRequests;
 import com.portfolio.reservation.dto.operation.TimeOperationUpdateRequest;
@@ -22,6 +23,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -119,7 +121,7 @@ public class DateOperationService {
         });
     }
 
-    private static boolean validateTime(LocalTime startTime, LocalTime endTime, LocalTime otherStartTime, LocalTime otherEndTime) {
+    public static boolean validateTime(LocalTime startTime, LocalTime endTime, LocalTime otherStartTime, LocalTime otherEndTime) {
 
         return (startTime.isBefore(otherStartTime) && (endTime.isBefore(otherStartTime) || endTime.equals(otherStartTime)))
                 || ((startTime.isAfter(otherEndTime) || startTime.equals(otherEndTime)) && endTime.isAfter(otherEndTime));
@@ -129,5 +131,10 @@ public class DateOperationService {
 
         return dateOperationRepository.findByIdAndExpiredAtIsNull(id)
                 .orElseThrow(NotFoundDateOperationException::new);
+    }
+
+    public List<DateOperation> getDateOperationsByDateTableIds(List<Long> dateTableIds) {
+
+        return dateOperationRepositoryCustom.getDateOperationsByDateTableIds(dateTableIds);
     }
 }

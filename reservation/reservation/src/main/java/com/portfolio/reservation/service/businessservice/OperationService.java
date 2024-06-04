@@ -1,5 +1,6 @@
 package com.portfolio.reservation.service.businessservice;
 
+import com.portfolio.reservation.domain.common.BaseEntity;
 import com.portfolio.reservation.domain.reservation.Reservation;
 import com.portfolio.reservation.domain.schedule.DateOperation;
 import com.portfolio.reservation.domain.schedule.Schedule;
@@ -10,7 +11,9 @@ import com.portfolio.reservation.domain.timetable.TimeTable;
 import com.portfolio.reservation.dto.operation.*;
 import com.portfolio.reservation.dto.schedule.DateOperationRequest;
 import com.portfolio.reservation.dto.schedule.TimeOperationRequest;
+import com.portfolio.reservation.exception.operation.NotAllowedTimeException;
 import com.portfolio.reservation.exception.operation.NotSearchTimeTableException;
+import com.portfolio.reservation.exception.operation.OverlapTimeOperationException;
 import com.portfolio.reservation.repository.timetable.TimeTableRepository;
 import com.portfolio.reservation.service.dateoperation.DateOperationService;
 import com.portfolio.reservation.service.datetable.DateTableService;
@@ -26,6 +29,10 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.portfolio.reservation.domain.timetable.TimeTable.makeEndDateOfDateTable;
+import static com.portfolio.reservation.domain.timetable.TimeTable.makeStartDateOfDateTable;
+import static com.portfolio.reservation.service.dateoperation.DateOperationService.validateTime;
 
 @Service
 @Transactional
@@ -278,6 +285,7 @@ public class OperationService {
     public void updateTimeTable(TimeTablesRequest request) {
 
         DateTable dateTable = dateTableService.findById(request.getDateTableId());
+        DateOperation dateOperation = dateOperationService.findById(dateTable.getDateOperationId());
 
         // 예약 받기 미사용
         if(!request.isDailyAvailable()) {
@@ -312,10 +320,9 @@ public class OperationService {
         // 검증을 위해 같은 일자 다른 dateTable 조회
         List<DateTable> remainingDateTables = dateTableService.getOthersInDate(dateTable);
 
-        // TODO: validation
         // timeTable 수정 검증
-//        if (!validateTimeTableModification(timeTables, remainingDateTables, request.getStartTime(), request.getEndTime())) return;
-        // ? List<TimeTableWithDateTableDto> timeTableDtos = timeTableService.search(storeId, request.getStartDate(), request.getEndDate());
+        if (!validateTimeTableModification(timeTables, remainingDateTables, request.getStartTime(), request.getEndTime(), dateOperation.getTimeUnit())) return;
+//         List<TimeTableWithDateTableDto> timeTableDtos = timeTableService.search(storeId, request.getStartDate(), request.getEndDate());
 
         // start/ endTime -> time_table 리스트에 반영
         // startTime 이전 시간 또는 endTime 이후 시간의 timeTable expire 처리
@@ -350,44 +357,47 @@ public class OperationService {
 
     }
 
-//    public static boolean validateTimeTableModification(List<TimeTable> timeTables, List<DateTable> remainingDateTables, LocalTime startTime, LocalTime endTime) {
-//
-//        // 기존 timeTable 과 startTime, endTime 같다면 early return
-//        if (!timeTables.isEmpty()) {
-//            LocalTime minTime = makeStartDateOfDateTable(timeTables);
-//            LocalTime maxTime = BookCommonUtil.makeEndDateOfDateTable(timeTables, timeTables.get(0).getScheduleOperation().getTimeUnit());
-//            if (startTime.equals(minTime)
-//                    && endTime.equals(maxTime)) {
-//                return false;
-//            }
-//        }
-//
-//        if (startTime.isAfter(endTime) || startTime.equals(endTime)) {
-//            throw new CoreException(CodeMessage.BAD_REQUEST.getCode(), "시작 시간은 종료 시간보다 이전 시간이어야 합니다.");
-//        }
-//
-//        remainingDateTables.stream()
-//                .filter(r -> {
-//                    LocalTime minTime = BookCommonUtil.makeStartDateOfDateTable(r.getTimeTables());
-//                    LocalTime maxTime = BookCommonUtil.makeEndDateOfDateTable(r.getTimeTables(), r.getTimeTables().get(0).getScheduleOperation().getTimeUnit());
-//                    return !validateTime(startTime, endTime, minTime, maxTime);
-//                })
-//                .findFirst()
-//                .ifPresent(index -> { // 존재하면
-//                    throw new CoreException(CodeMessage.BAD_REQUEST.getCode(), "같은 날짜에 겹치는 예약 시간이 존재합니다.");
-//                });
-//
-//        return true;
-//    }
+    public boolean validateTimeTableModification(
+            List<TimeTable> timeTables,
+            List<DateTable> remainingDateTables,
+            LocalTime startTime,
+            LocalTime endTime,
+            TimeUnitType timeUnit
+    ) {
 
-    // 하나의 dateTable 내 timeTable 리스트를 통해 운영 시작 시간 추출
-    public static LocalTime makeStartDateOfDateTable(List<TimeTable> timeTables) {
+        // 기존 timeTable 과 startTime, endTime 같다면 early return; 기존 것 그대로 들어왔기 때문에 변경 없음
+        if (!timeTables.isEmpty()) {
+            LocalTime minTime = makeStartDateOfDateTable(timeTables);
+            LocalTime maxTime = makeEndDateOfDateTable(timeTables, timeUnit);
+            if (startTime.equals(minTime)
+                    && endTime.equals(maxTime)) {
+                return false;
+            }
+        }
 
-        return timeTables
-                .stream()
-                .filter(tt -> Objects.isNull(tt.getExpiredAt()))
-                .min(Comparator.comparing(TimeTable::getTime))
-                .map(TimeTable::getTime)
-                .orElse(null);
+        if (startTime.isAfter(endTime) || startTime.equals(endTime)) {
+            throw new NotAllowedTimeException();
+        }
+
+        List<Long> remainIds = remainingDateTables.stream()
+                        .map(DateTable::getDateOperationId)
+                        .toList();
+        List<DateOperation> dateOperations = dateOperationService.getDateOperationsByDateTableIds(remainIds);
+
+        Map<Long, DateOperation> dateOperationMap = dateOperations.stream()
+                        .collect(Collectors.toMap(BaseEntity::getId, Function.identity(), (s1, s2) -> s1));
+
+        remainingDateTables.stream()
+                .filter(r -> {
+                    LocalTime minTime = makeStartDateOfDateTable(r.getTimeTables());
+                    LocalTime maxTime = makeEndDateOfDateTable(r.getTimeTables(), dateOperationMap.get(r.getDateOperationId()).getTimeUnit());
+                    return !validateTime(startTime, endTime, minTime, maxTime);
+                })
+                .findFirst()
+                .ifPresent(index -> {
+                    throw new OverlapTimeOperationException();
+                });
+
+        return true;
     }
 }

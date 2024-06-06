@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface TimeOperationRepository extends JpaRepository<TimeOperation, Long> {
 
@@ -19,4 +20,6 @@ public interface TimeOperationRepository extends JpaRepository<TimeOperation, Lo
             @Param("ids") List<Long> ids,
            @Param("now") LocalDateTime now
     );
+
+    Optional<TimeOperation> findByIdAndExpiredAtIsNull(Long id);
 }

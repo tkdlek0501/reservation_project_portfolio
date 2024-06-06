@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.*;
 import java.util.function.Function;
@@ -250,7 +251,6 @@ public class OperationService {
                 .collect(Collectors.toList());
     }
 
-    // TODO: 예약 가능 인원 수정
     /*
      * 한 번에 예약 가능한 인원 수정을 합니다.
      */
@@ -286,6 +286,7 @@ public class OperationService {
 
         DateTable dateTable = dateTableService.findById(request.getDateTableId());
         DateOperation dateOperation = dateOperationService.findById(dateTable.getDateOperationId());
+        Schedule schedule = scheduleService.findById(dateTable.getScheduleId());
 
         // 예약 받기 미사용
         if(!request.isDailyAvailable()) {
@@ -322,39 +323,37 @@ public class OperationService {
 
         // timeTable 수정 검증
         if (!validateTimeTableModification(timeTables, remainingDateTables, request.getStartTime(), request.getEndTime(), dateOperation.getTimeUnit())) return;
-//         List<TimeTableWithDateTableDto> timeTableDtos = timeTableService.search(storeId, request.getStartDate(), request.getEndDate());
 
         // start/ endTime -> time_table 리스트에 반영
         // startTime 이전 시간 또는 endTime 이후 시간의 timeTable expire 처리
-//        List<Long> expireIds = timeTables.stream()
-//                .filter(tt -> tt.getRawTime().isBefore(request.getStartTime())
-//                        || tt.getRawTime().isAfter(request.getEndTime())
-//                        || tt.getRawTime().equals(request.getEndTime()))
-//                .map(TimeTable::getId)
-//                .collect(Collectors.toList());
-//        if(!expireIds.isEmpty()) {
-//            timeTableRepository.bulkExpire(expireIds, LocalDateTime.now());
-//        }
-//
-//        // startTime, endTime 시간 내 조회되지 않는 timeTable 은 생성
-//        List<TimeTable> createTimeTables = new ArrayList<>();
-//        LocalTime currentTime = request.getStartTime();
-//        List<LocalTime> times = timeTables
-//                .stream()
-//                .map(TimeTable::getRawTime)
-//                .collect(Collectors.toList());
-//        Schedule schedule = dateTable.getSchedule();
-//        ScheduleOperation scheduleOperation = dateTable.getScheduleOperation();
-//        ScheduleOperationTime scheduleOperationTime = dateTable.getScheduleOperationTime();
-//        while (currentTime.isBefore(request.getEndTime())) {
-//            if(!times.contains(currentTime)) {
-//                createTimeTables.add(TimeTable.toEntity(schedule, scheduleOperation, scheduleOperationTime, dateTable, dateTable.getRawDate(), currentTime, dateTable.getMaxPersonOfDay(), true));
-//            }
-//
-//            currentTime = getCurrentTimeByTimeUnit(scheduleOperation, currentTime);
-//        }
-//        timeTableRepository.saveAll(createTimeTables);
+        // TODO: filter 부분 Predicate 로 수정
+        List<Long> expireIds = timeTables.stream()
+                .filter(tt -> tt.getTime().isBefore(request.getStartTime())
+                        || tt.getTime().isAfter(request.getEndTime())
+                        || tt.getTime().equals(request.getEndTime()))
+                .map(TimeTable::getId)
+                .collect(Collectors.toList());
+        if(!expireIds.isEmpty()) {
+            timeTableService.bulkExpireByIds(expireIds);
+        }
 
+        // startTime, endTime 시간 내 조회되지 않는 timeTable 은 생성
+        List<TimeTable> createTimeTables = new ArrayList<>();
+        LocalTime currentTime = request.getStartTime();
+        List<LocalTime> times = timeTables
+                .stream()
+                .map(TimeTable::getTime)
+                .toList();
+
+        TimeOperation timeOperation = timeOperationService.findById(dateTable.getTimeOperationId());
+        while (currentTime.isBefore(request.getEndTime())) {
+            if(!times.contains(currentTime)) {
+                createTimeTables.add(TimeTable.create(dateTable.getStoreId(), schedule.getId(), dateTable.getId(), dateOperation.getId(), timeOperation.getId(), dateTable.getDate(), currentTime, 0));
+            }
+
+            currentTime = getCurrentTimeByTimeUnit(dateOperation, currentTime);
+        }
+        timeTableService.save(createTimeTables);
     }
 
     public boolean validateTimeTableModification(

@@ -8,4 +8,6 @@ import java.util.Optional;
 public interface ScheduleRepository extends JpaRepository<Schedule, Long> {
 
     Optional<Schedule> findByStoreIdAndExpiredAtIsNull(Long storeId);
+
+    Optional<Schedule> findByIdAndExpiredAtIsNull(Long id);
 }

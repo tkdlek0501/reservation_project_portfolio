@@ -34,4 +34,9 @@ public class TimeTableService {
 
         return timeTableRepositoryCustom.search(storeId, startDate, endDate);
     }
+
+    public void bulkExpireByIds(List<Long> ids) {
+
+        timeTableRepository.bulkExpireByIds(ids, LocalDateTime.now());
+    }
 }

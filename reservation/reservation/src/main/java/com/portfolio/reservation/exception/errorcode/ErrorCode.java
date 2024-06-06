@@ -21,6 +21,9 @@ public enum ErrorCode {
     // schedule
     NOT_FOUND_SCHEDULE("SCD001", "스케줄이 조회되지 않습니다."),
 
+    // time_operation
+    NOT_FOUND_TIME_OPERATION("TO001", "시간 운영 방식이 조회되지 않습니다."),
+
     // operation
     EXCEED_DATEOPERATION_SIZE("OPR001", "기본 운영 방식은 3개까지 등록 가능합니다."),
 

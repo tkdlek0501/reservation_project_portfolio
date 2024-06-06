@@ -21,4 +21,14 @@ public interface TimeTableRepository extends JpaRepository<TimeTable, Long> {
             @Param("dateOperationIds") List<Long> dateOperationIds,
             @Param("now") LocalDateTime now
     );
+
+    @Modifying
+    @Query("UPDATE TimeTable tt" +
+            " SET tt.expiredAt = :now" +
+            " WHERE tt.id IN :ids" +
+            " AND tt.expiredAt IS NULL")
+    int bulkExpireByIds(
+            @Param("ids") List<Long> ids,
+            @Param("now") LocalDateTime now
+    );
 }

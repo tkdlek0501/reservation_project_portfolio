@@ -45,7 +45,14 @@ public class ScheduleService {
     }
 
     public Schedule findByStoreId(Long storeId) {
+
         return scheduleRepository.findByStoreIdAndExpiredAtIsNull(storeId)
+                .orElseThrow(NotFoundScheduleException::new);
+    }
+
+    public Schedule findById(Long id) {
+
+        return scheduleRepository.findByIdAndExpiredAtIsNull(id)
                 .orElseThrow(NotFoundScheduleException::new);
     }
 

@@ -239,7 +239,7 @@ public class OperationService {
 //                .map(p -> p.getHoliday())
 //                .collect(Collectors.toList());
 
-        // 휴무일이면 response 내 isHoliday = true 로 수정
+//         휴무일이면 response 내 isHoliday = true 로 수정
 //        responses
 //                .stream()
 //                .filter(response -> holidayCalanders.contains(response.getDate()))
@@ -258,9 +258,6 @@ public class OperationService {
     public void updateScheduleLimitCount(Long storeId, ScheduleLimitCountRequest request) {
 
         // TODO: validation : min <= max
-
-//        Schedule schedule = scheduleRepository.findByStoreInfo_IdAndExpiredAtIsNull(storeId)
-//                .orElseThrow(() -> new CoreException(CodeMessage.NOT_FOUND.getCode(), "해당 매장의 예약 설정이 없습니다."));
 
         Schedule schedule = scheduleService.findByStoreId(storeId);
 
@@ -399,4 +396,103 @@ public class OperationService {
 
         return true;
     }
+
+//    휴일 정보의 타입별로 추출 알고리즘 분기
+//    private List<LocalDate> getExtractedDates(OtherHoliday holiday, LocalDate currentDate, LocalDate lastDate) {
+//        switch (holiday.getType()) {
+//            case DAY:
+//                return handleDayType(holiday, currentDate, lastDate);
+//            case PERIOD:
+//                return handlePeriodType(holiday, currentDate, lastDate);
+//            default:
+//                return Collections.emptyList();
+//        }
+//    }
+
+    /**
+     * 휴일 정보의 타입이 DAY일 경우 추출 알고리즘
+     */
+//    private List<LocalDate> handleDayType(OtherHoliday holiday, LocalDate currentDate, LocalDate lastDate) {
+//        List<LocalDate> dates = new ArrayList<>();
+//        LocalDate date = holiday.getDay();
+//
+//        BiFunction<LocalDate, Long, LocalDate> incrementer;
+//
+//        switch (holiday.getRepeatType()) {
+//            case ANNUAL:
+//                incrementer = LocalDate::plusYears;
+//                while (date.isBefore(currentDate)) {
+//                    date = incrementer.apply(date, 1L);
+//                }
+//                break;
+//            case MONTHLY:
+//                incrementer = LocalDate::plusMonths;
+//                while (date.isBefore(currentDate)) {
+//                    date = incrementer.apply(date, 1L);
+//                }
+//                break;
+//            case ONCE:
+//            default:
+//                if (currentDate.isAfter(date) && date.isBefore(lastDate)) {
+//                    dates.add(date);
+//                }
+//                return dates;
+//        }
+//
+//        while (!date.isAfter(lastDate)) {
+//            dates.add(date);
+//            date = incrementer.apply(date, 1L);
+//        }
+//
+//        return dates;
+//    }
+
+    /**
+     * 휴일 정보의 타입이 PERIOD일 경우 추출 알고리즘
+     */
+//    private List<LocalDate> handlePeriodType(ScheduleOtherHoliday holiday, LocalDate currentDate, LocalDate lastDate) {
+//        List<LocalDate> dates = new ArrayList<>();
+//        LocalDate startDate = holiday.getStartDate();
+//        LocalDate endDate = holiday.getEndDate();
+//
+//        BiFunction<LocalDate, Long, LocalDate> incrementer;
+//
+//        switch (holiday.getRepeatType()) {
+//            case ANNUAL:
+//                incrementer = LocalDate::plusYears;
+//                while (startDate.isBefore(currentDate)) {
+//                    startDate = incrementer.apply(startDate, 1L);
+//                    endDate = incrementer.apply(endDate, 1L);
+//                }
+//                break;
+//            case MONTHLY:
+//                incrementer = LocalDate::plusMonths;
+//                while (startDate.isBefore(currentDate)) {
+//                    startDate = incrementer.apply(startDate, 1L);
+//                    endDate = incrementer.apply(endDate, 1L);
+//                }
+//                break;
+//            case ONCE:
+//            default:
+//                while (!startDate.isAfter(endDate) && !startDate.isAfter(lastDate)) {
+//                    dates.add(startDate);
+//                    startDate = startDate.plusDays(1);
+//                }
+//                return dates;
+//        }
+//
+//        log.info("startDate: {}, endDate: {}, repeatType: {}", startDate, endDate, holiday.getRepeatType());
+//        while (!startDate.isAfter(lastDate)) {
+//            LocalDate currentStartDate = startDate;
+//            LocalDate currentEndDate = endDate;
+//            while (!currentStartDate.isAfter(currentEndDate) && !currentStartDate.isAfter(currentStartDate.with(TemporalAdjusters.lastDayOfMonth()))) {
+//                dates.add(currentStartDate);
+//                currentStartDate = currentStartDate.plusDays(1);
+//            }
+//            startDate = incrementer.apply(startDate, 1L);
+//            endDate = incrementer.apply(endDate, 1L);
+//        }
+//
+//        return dates;
+//    }
 }

@@ -2,9 +2,7 @@ package com.portfolio.reservation.service.businessservice;
 
 import com.portfolio.reservation.domain.common.BaseEntity;
 import com.portfolio.reservation.domain.reservation.Reservation;
-import com.portfolio.reservation.domain.schedule.DateOperation;
-import com.portfolio.reservation.domain.schedule.Schedule;
-import com.portfolio.reservation.domain.schedule.TimeOperation;
+import com.portfolio.reservation.domain.schedule.*;
 import com.portfolio.reservation.domain.schedule.type.TimeUnitType;
 import com.portfolio.reservation.domain.timetable.DateTable;
 import com.portfolio.reservation.domain.timetable.TimeTable;
@@ -17,6 +15,8 @@ import com.portfolio.reservation.exception.operation.OverlapTimeOperationExcepti
 import com.portfolio.reservation.repository.timetable.TimeTableRepository;
 import com.portfolio.reservation.service.dateoperation.DateOperationService;
 import com.portfolio.reservation.service.datetable.DateTableService;
+import com.portfolio.reservation.service.holiday.OtherHolidayService;
+import com.portfolio.reservation.service.holiday.RegularHolidayService;
 import com.portfolio.reservation.service.schedule.ScheduleService;
 import com.portfolio.reservation.service.timeoperation.TimeOperationService;
 import com.portfolio.reservation.service.timetable.TimeTableService;
@@ -27,7 +27,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -46,6 +48,8 @@ public class OperationService {
     private final DateTableService dateTableService;
     private final TimeTableService timeTableService;
     private final ReservationService reservationService;
+    private final OtherHolidayService otherHolidayService;
+    private final RegularHolidayService regularHolidayService;
 
     /**
      * 기본 운영 시간을 생성합니다.
@@ -232,18 +236,14 @@ public class OperationService {
             responses.add(DateTableResponse.of(key, value, reservationMap));
         });
 
-        // TODO: 휴일 관리 작업
         // 매장의 휴일 목록
-//        List<LocalDate> holidayCalanders = scheduleHolidayCalanderRepository.findScheduleHolidayByStoreId(storeId, BookConstants.maxReservationDays)
-//                .stream()
-//                .map(p -> p.getHoliday())
-//                .collect(Collectors.toList());
+        List<LocalDate> holidayDates = getHolidayDates(storeId, request.getStartDate(), request.getEndDate());
 
-//         휴무일이면 response 내 isHoliday = true 로 수정
-//        responses
-//                .stream()
-//                .filter(response -> holidayCalanders.contains(response.getDate()))
-//                .forEach(response -> response.changeIsHoliday(true));
+        // 휴무일이면 response 내 isHoliday = true 로 수정
+        responses
+                .stream()
+                .filter(response -> holidayDates.contains(response.getDate()))
+                .forEach(response -> response.changeIsHoliday(true));
 
         return responses
                 .stream()
@@ -397,102 +397,48 @@ public class OperationService {
         return true;
     }
 
-//    휴일 정보의 타입별로 추출 알고리즘 분기
-//    private List<LocalDate> getExtractedDates(OtherHoliday holiday, LocalDate currentDate, LocalDate lastDate) {
-//        switch (holiday.getType()) {
-//            case DAY:
-//                return handleDayType(holiday, currentDate, lastDate);
-//            case PERIOD:
-//                return handlePeriodType(holiday, currentDate, lastDate);
-//            default:
-//                return Collections.emptyList();
-//        }
-//    }
+    // Holiday 의 일자 가져오기
+    private List<LocalDate> getHolidayDates(Long storeId, LocalDate startDate, LocalDate endDate) {
 
-    /**
-     * 휴일 정보의 타입이 DAY일 경우 추출 알고리즘
-     */
-//    private List<LocalDate> handleDayType(OtherHoliday holiday, LocalDate currentDate, LocalDate lastDate) {
-//        List<LocalDate> dates = new ArrayList<>();
-//        LocalDate date = holiday.getDay();
-//
-//        BiFunction<LocalDate, Long, LocalDate> incrementer;
-//
-//        switch (holiday.getRepeatType()) {
-//            case ANNUAL:
-//                incrementer = LocalDate::plusYears;
-//                while (date.isBefore(currentDate)) {
-//                    date = incrementer.apply(date, 1L);
-//                }
-//                break;
-//            case MONTHLY:
-//                incrementer = LocalDate::plusMonths;
-//                while (date.isBefore(currentDate)) {
-//                    date = incrementer.apply(date, 1L);
-//                }
-//                break;
-//            case ONCE:
-//            default:
-//                if (currentDate.isAfter(date) && date.isBefore(lastDate)) {
-//                    dates.add(date);
-//                }
-//                return dates;
-//        }
-//
-//        while (!date.isAfter(lastDate)) {
-//            dates.add(date);
-//            date = incrementer.apply(date, 1L);
-//        }
-//
-//        return dates;
-//    }
+        List<OtherHoliday> otherHolidays = otherHolidayService.searchByStoreId(storeId, startDate, endDate);
+        Set<LocalDate> dates = new HashSet<>(getDatesOfOtherHolidays(otherHolidays));
 
-    /**
-     * 휴일 정보의 타입이 PERIOD일 경우 추출 알고리즘
-     */
-//    private List<LocalDate> handlePeriodType(ScheduleOtherHoliday holiday, LocalDate currentDate, LocalDate lastDate) {
-//        List<LocalDate> dates = new ArrayList<>();
-//        LocalDate startDate = holiday.getStartDate();
-//        LocalDate endDate = holiday.getEndDate();
-//
-//        BiFunction<LocalDate, Long, LocalDate> incrementer;
-//
-//        switch (holiday.getRepeatType()) {
-//            case ANNUAL:
-//                incrementer = LocalDate::plusYears;
-//                while (startDate.isBefore(currentDate)) {
-//                    startDate = incrementer.apply(startDate, 1L);
-//                    endDate = incrementer.apply(endDate, 1L);
-//                }
-//                break;
-//            case MONTHLY:
-//                incrementer = LocalDate::plusMonths;
-//                while (startDate.isBefore(currentDate)) {
-//                    startDate = incrementer.apply(startDate, 1L);
-//                    endDate = incrementer.apply(endDate, 1L);
-//                }
-//                break;
-//            case ONCE:
-//            default:
-//                while (!startDate.isAfter(endDate) && !startDate.isAfter(lastDate)) {
-//                    dates.add(startDate);
-//                    startDate = startDate.plusDays(1);
-//                }
-//                return dates;
-//        }
-//
-//        log.info("startDate: {}, endDate: {}, repeatType: {}", startDate, endDate, holiday.getRepeatType());
-//        while (!startDate.isAfter(lastDate)) {
-//            LocalDate currentStartDate = startDate;
-//            LocalDate currentEndDate = endDate;
-//            while (!currentStartDate.isAfter(currentEndDate) && !currentStartDate.isAfter(currentStartDate.with(TemporalAdjusters.lastDayOfMonth()))) {
-//                dates.add(currentStartDate);
-//                currentStartDate = currentStartDate.plusDays(1);
-//            }
-//            startDate = incrementer.apply(startDate, 1L);
-//            endDate = incrementer.apply(endDate, 1L);
-//        }
-//
-//        return dates;
-//    }
+        RegularHoliday regularHoliday = regularHolidayService.findByStoreId(storeId);
+        dates.addAll(getDatesOfRegularHoliday(regularHoliday, startDate, endDate));
+
+        return new ArrayList<>(dates);
+    }
+
+    private List<LocalDate> getDatesOfOtherHolidays(List<OtherHoliday> otherHolidays) {
+
+        Set<LocalDate> dates = new HashSet<>();
+
+        for (OtherHoliday otherHoliday : otherHolidays) {
+            LocalDate startDate = otherHoliday.getStartDate();
+            LocalDate endDate = otherHoliday.getEndDate();
+
+            while (!startDate.isAfter(endDate)) {
+                dates.add(startDate);
+                startDate = startDate.plusDays(1);
+            }
+        }
+        return dates.stream().toList();
+    }
+
+    private List<LocalDate> getDatesOfRegularHoliday(RegularHoliday regularHoliday, LocalDate startDate, LocalDate endDate) {
+
+        List<LocalDate> dates = new ArrayList<>();
+
+        List<String> dayOfWeeks = regularHoliday.getDayOfWeekList();
+
+        while (!startDate.isAfter(endDate)) {
+            if (dayOfWeeks.contains(startDate.getDayOfWeek().toString())) {
+                dates.add(startDate);
+            }
+            startDate = startDate.plusDays(1);
+        }
+
+        return dates;
+    }
+
 }

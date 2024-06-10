@@ -24,6 +24,7 @@ public class ScheduleResponse {
 
     private SameDayApprovalType sameDayCancelApproval;
 
+    @Builder.Default
     private List<DateOperationResponse> dateOperations = new ArrayList<>();
 
     public static ScheduleResponse of(Schedule schedule, List<DateOperationResponse> responses) {

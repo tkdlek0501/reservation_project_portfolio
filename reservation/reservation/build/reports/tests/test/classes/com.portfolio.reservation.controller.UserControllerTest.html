@@ -41,7 +41,7 @@
 </td>
 <td>
 <div class="infoBox" id="duration">
-<div class="counter">0.365s</div>
+<div class="counter">0.419s</div>
 <p>duration</p>
 </div>
 </td>
@@ -182,17 +182,17 @@
 </thead>
 <tr>
 <td class="success">signUp_valid_nickname_pattern_테스트()</td>
-<td class="success">0.306s</td>
+<td class="success">0.358s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">signUp_valid_nickname_size_테스트()</td>
-<td class="success">0.007s</td>
+<td class="success">0.008s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="failures">signUp_valid_password_pattern_테스트()</td>
-<td class="failures">0.009s</td>
+<td class="failures">0.010s</td>
 <td class="failures">failed</td>
 </tr>
 <tr>
@@ -202,17 +202,17 @@
 </tr>
 <tr>
 <td class="success">signUp_valid_username_pattern_테스트()</td>
-<td class="success">0.007s</td>
+<td class="success">0.009s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">signUp_valid_username_size_테스트()</td>
-<td class="success">0.006s</td>
+<td class="success">0.007s</td>
 <td class="success">passed</td>
 </tr>
 <tr>
 <td class="success">signUp_valid_통과_테스트()</td>
-<td class="success">0.025s</td>
+<td class="success">0.022s</td>
 <td class="success">passed</td>
 </tr>
 </table>
@@ -220,8 +220,8 @@
 <div id="tab2" class="tab">
 <h2>Standard output</h2>
 <span class="code">
-<pre>2024-05-30T20:48:32.098+09:00  INFO 15948 --- [reservation] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.portfolio.reservation.controller.UserControllerTest]: UserControllerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2024-05-30T20:48:32.140+09:00  INFO 15948 --- [reservation] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.portfolio.reservation.ReservationApplication for test class com.portfolio.reservation.controller.UserControllerTest
+<pre>2024-06-10T19:55:33.338+09:00  INFO 1536 --- [reservation] [    Test worker] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.portfolio.reservation.controller.UserControllerTest]: UserControllerTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+2024-06-10T19:55:33.378+09:00  INFO 1536 --- [reservation] [    Test worker] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.portfolio.reservation.ReservationApplication for test class com.portfolio.reservation.controller.UserControllerTest
 
   .   ____          _            __ _ _
  /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
@@ -231,19 +231,19 @@
  =========|_|==============|___/=/_/_/_/
  :: Spring Boot ::                (v3.2.4)
 
-2024-05-30T20:48:32.191+09:00  INFO 15948 --- [reservation] [    Test worker] c.p.r.controller.UserControllerTest      : Starting UserControllerTest using Java 17.0.10 with PID 15948 (started by ASUS in C:\portfolio\reservation_portfolio\reservation\reservation)
-2024-05-30T20:48:32.192+09:00  INFO 15948 --- [reservation] [    Test worker] c.p.r.controller.UserControllerTest      : No active profile set, falling back to 1 default profile: &quot;default&quot;
-2024-05-30T20:48:33.516+09:00  WARN 15948 --- [reservation] [    Test worker] .s.s.UserDetailsServiceAutoConfiguration : 
+2024-06-10T19:55:33.420+09:00  INFO 1536 --- [reservation] [    Test worker] c.p.r.controller.UserControllerTest      : Starting UserControllerTest using Java 17.0.10 with PID 1536 (started by ASUS in C:\portfolio\reservation_portfolio\reservation\reservation)
+2024-06-10T19:55:33.420+09:00  INFO 1536 --- [reservation] [    Test worker] c.p.r.controller.UserControllerTest      : No active profile set, falling back to 1 default profile: &quot;default&quot;
+2024-06-10T19:55:34.853+09:00  WARN 1536 --- [reservation] [    Test worker] .s.s.UserDetailsServiceAutoConfiguration : 
 
-Using generated security password: 2bb307e4-752b-42bb-8f98-5d6f73e8b1b7
+Using generated security password: c446f6b7-772f-46cb-8b41-91edc0f13d48
 
 This generated password is for development use only. Your security configuration must be updated before running your application in production.
 
-2024-05-30T20:48:34.412+09:00  INFO 15948 --- [reservation] [    Test worker] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@6297cb4b, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@65d6640, org.springframework.security.web.context.SecurityContextHolderFilter@56ba8e8c, org.springframework.security.web.header.HeaderWriterFilter@586486c, org.springframework.web.filter.CorsFilter@672d8370, org.springframework.security.web.authentication.logout.LogoutFilter@5c9b5e62, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@4cf01c41, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@57bac3f0, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@13137835, org.springframework.security.web.session.SessionManagementFilter@7fbbdd8a, org.springframework.security.web.access.ExceptionTranslationFilter@4a5066f5, org.springframework.security.web.access.intercept.AuthorizationFilter@6150afc6]
-2024-05-30T20:48:34.672+09:00  INFO 15948 --- [reservation] [    Test worker] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
-2024-05-30T20:48:34.673+09:00  INFO 15948 --- [reservation] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
-2024-05-30T20:48:34.674+09:00  INFO 15948 --- [reservation] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
-2024-05-30T20:48:34.703+09:00  INFO 15948 --- [reservation] [    Test worker] c.p.r.controller.UserControllerTest      : Started UserControllerTest in 2.548 seconds (process running for 4.997)
+2024-06-10T19:55:35.975+09:00  INFO 1536 --- [reservation] [    Test worker] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@4ac7856f, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@432f4626, org.springframework.security.web.context.SecurityContextHolderFilter@61d42275, org.springframework.security.web.header.HeaderWriterFilter@6207145c, org.springframework.web.filter.CorsFilter@297c3a43, org.springframework.security.web.authentication.logout.LogoutFilter@21e702b8, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@4148ce43, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@46fb9581, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@4c79ca55, org.springframework.security.web.session.SessionManagementFilter@7ccf6114, org.springframework.security.web.access.ExceptionTranslationFilter@66a8751a, org.springframework.security.web.access.intercept.AuthorizationFilter@4ab86b2a]
+2024-06-10T19:55:36.362+09:00  INFO 1536 --- [reservation] [    Test worker] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2024-06-10T19:55:36.362+09:00  INFO 1536 --- [reservation] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2024-06-10T19:55:36.363+09:00  INFO 1536 --- [reservation] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 1 ms
+2024-06-10T19:55:36.392+09:00  INFO 1536 --- [reservation] [    Test worker] c.p.r.controller.UserControllerTest      : Started UserControllerTest in 2.999 seconds (process running for 5.456)
 
 MockHttpServletRequest:
       HTTP Method = POST
@@ -292,7 +292,7 @@ MockHttpServletResponse:
 <input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
 </label>
 </div>Generated by 
-<a href="http://www.gradle.org">Gradle 8.7</a> at 2024. 5. 30. 오후 8:48:35</p>
+<a href="http://www.gradle.org">Gradle 8.7</a> at 2024. 6. 10. 오후 7:55:37</p>
 </div>
 </div>
 </body>

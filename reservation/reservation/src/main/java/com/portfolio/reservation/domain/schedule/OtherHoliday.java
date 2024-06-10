@@ -30,4 +30,6 @@ public class OtherHoliday extends BaseEntity {
 
     @LastModifiedDate
     private LocalDateTime updatedAt;
+
+    private LocalDateTime expiredAt;
 }

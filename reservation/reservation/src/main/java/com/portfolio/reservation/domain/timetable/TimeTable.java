@@ -4,10 +4,7 @@ import com.portfolio.reservation.domain.common.BaseEntity;
 import com.portfolio.reservation.domain.reservation.Reservation;
 import com.portfolio.reservation.domain.schedule.type.TimeUnitType;
 import com.portfolio.reservation.dto.operation.TimeTableRequest;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedDate;
@@ -33,16 +30,22 @@ public class TimeTable extends BaseEntity {
     @Builder.Default
     @OneToMany
     @BatchSize(size = 500)
+    @JoinColumn(name = "time_table_id")
     private List<Reservation> reservations = new ArrayList<>();
 
+    @Column(name = "date_table_id")
     private Long dateTableId;
 
+    @Column(name = "store_id")
     private Long storeId;
 
+    @Column(name = "schedule_id")
     private Long scheduleId;
 
+    @Column(name = "date_operation_id")
     private Long dateOperationId;
 
+    @Column(name = "time_operation_id")
     private Long timeOperationId;
 
     private LocalDate date;

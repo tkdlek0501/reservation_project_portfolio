@@ -1,6 +1,7 @@
 package com.portfolio.reservation.domain.schedule;
 
 import com.portfolio.reservation.domain.common.BaseEntity;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import lombok.*;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 @EntityListeners(AuditingEntityListener.class)
 public class OtherHoliday extends BaseEntity {
 
+    @Column(name = "schedule_id", nullable = false)
     private Long scheduleId;
 
     private LocalDate startDate;

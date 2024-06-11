@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 @EntityListeners(AuditingEntityListener.class)
 public class RegularHoliday extends BaseEntity {
 
+    @Column(name = "schedule_id", nullable = false)
     private Long scheduleId;
 
     private LocalDate startDate;

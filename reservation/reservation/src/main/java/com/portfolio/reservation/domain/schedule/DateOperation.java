@@ -5,10 +5,7 @@ import com.portfolio.reservation.domain.schedule.type.TimeUnitType;
 import com.portfolio.reservation.domain.timetable.DateTable;
 import com.portfolio.reservation.domain.timetable.TimeTable;
 import com.portfolio.reservation.dto.schedule.DateOperationRequest;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.*;
 import org.apache.ibatis.annotations.One;
 import org.hibernate.annotations.BatchSize;
@@ -29,21 +26,25 @@ import java.util.List;
 @EntityListeners(AuditingEntityListener.class)
 public class DateOperation extends BaseEntity {
 
+    @Column(name = "schedule_id")
     private Long scheduleId;
 
     @Builder.Default
     @OneToMany
     @BatchSize(size = 500)
+    @JoinColumn(name = "date_operation_id")
     private List<TimeOperation> timeOperations = new ArrayList<>();
 
     @Builder.Default
     @OneToMany
     @BatchSize(size = 500)
+    @JoinColumn(name = "date_operation_id")
     private List<DateTable> dateTables = new ArrayList<>();
 
     @Builder.Default
     @OneToMany
     @BatchSize(size = 500)
+    @JoinColumn(name = "date_operation_id")
     private List<TimeTable> timeTables = new ArrayList<>();
 
     private TimeUnitType timeUnit;

@@ -4,10 +4,7 @@ import com.portfolio.reservation.domain.common.BaseEntity;
 import com.portfolio.reservation.domain.timetable.TimeTable;
 import com.portfolio.reservation.dto.operation.TimeOperationUpdateRequest;
 import com.portfolio.reservation.dto.schedule.TimeOperationRequest;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.*;
 import org.apache.ibatis.annotations.One;
 import org.hibernate.annotations.BatchSize;
@@ -31,8 +28,10 @@ public class TimeOperation extends BaseEntity {
     @Builder.Default
     @OneToMany
     @BatchSize(size = 500)
+    @JoinColumn(name = "time_operation_id")
     private List<TimeTable> timeTables = new ArrayList<>();
 
+    @Column(name = "date_operation_id", nullable = false)
     private Long dateOperationId;
 
     private LocalTime startTime;

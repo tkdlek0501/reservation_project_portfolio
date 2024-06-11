@@ -23,12 +23,16 @@ public class Reservation extends BaseEntity {
     @Builder.Default
     @OneToMany
     @BatchSize(size = 500)
+    @JoinColumn(name = "reservation_id")
     private List<ReservationHistory> reservationHistories = new ArrayList<>();
 
+    @Column(name = "user_id")
     private Long userId;
 
+    @Column(name = "store_id")
     private Long storeId;
 
+    @Column(name = "time_table_id")
     private Long timeTableId;
 
     private ReservationStatus status;

@@ -1,5 +1,6 @@
 package com.portfolio.reservation.service.store;
 
+import com.portfolio.reservation.config.TestSecurityConfig;
 import com.portfolio.reservation.domain.store.Store;
 import com.portfolio.reservation.domain.user.AuthorityType;
 import com.portfolio.reservation.domain.user.User;
@@ -18,6 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -109,8 +111,8 @@ public class StoreServiceTest {
         // then
         Store createdStore = storeRepository.findTopByOrderById()
                 .orElseThrow(NotFoundStoreException::new);
-       assertThat(createdStore.getName()).isEqualTo("매장1");
-       assertThat(createdStore.getUserId()).isEqualTo(user.getId());
+        assertThat(createdStore.getName()).isEqualTo("매장1");
+        assertThat(createdStore.getUserId()).isEqualTo(user.getId());
     }
 
     // 통과

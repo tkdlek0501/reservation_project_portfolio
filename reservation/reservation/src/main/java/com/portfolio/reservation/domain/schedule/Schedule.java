@@ -29,26 +29,31 @@ public class Schedule extends BaseEntity {
     @Builder.Default
     @OneToMany
     @BatchSize(size = 500)
+    @JoinColumn(name = "schedule_id")
     private List<DateOperation> dateOperations = new ArrayList<>();
 
     @Builder.Default
     @OneToMany
     @BatchSize(size = 500)
+    @JoinColumn(name = "schedule_id")
     private List<RegularHoliday> regularHolidays = new ArrayList<>();
 
     @Builder.Default
     @OneToMany
     @BatchSize(size = 500)
+    @JoinColumn(name = "schedule_id")
     private List<OtherHoliday> otherHolidays = new ArrayList<>();
 
     @Builder.Default
     @OneToMany
     @BatchSize(size = 500)
+    @JoinColumn(name = "schedule_id")
     private List<DateTable> dateTables = new ArrayList<>();
 
     @Builder.Default
     @OneToMany
     @BatchSize(size = 500)
+    @JoinColumn(name = "schedule_id")
     private List<TimeTable> timeTables = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)

@@ -30,6 +30,7 @@ public class User extends BaseEntity {
     @Builder.Default
     @OneToMany
     @BatchSize(size = 500)
+    @JoinColumn(name = "user_id")
     private List<Reservation> reservations = new ArrayList<>();
 
     @Column(length = 50, unique = true)

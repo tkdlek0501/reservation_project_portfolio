@@ -28,6 +28,7 @@ public class Store extends BaseEntity {
     @Column(length = 50, unique = true)
     private String name; // 매장명
 
+    @Column(name = "user_id")
     private Long userId;
     // user 와 1:1 관계
     // OneToOne 이므로 N+1 관리 측면에서 연관관계 설정 별도 x

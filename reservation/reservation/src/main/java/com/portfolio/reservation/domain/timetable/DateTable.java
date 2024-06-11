@@ -1,10 +1,7 @@
 package com.portfolio.reservation.domain.timetable;
 
 import com.portfolio.reservation.domain.common.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EntityListeners;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.BatchSize;
 import org.springframework.data.annotation.CreatedDate;
@@ -28,14 +25,19 @@ public class DateTable extends BaseEntity {
     @Builder.Default
     @OneToMany
     @BatchSize(size = 500)
+    @JoinColumn(name = "date_table_id")
     private List<TimeTable> timeTables = new ArrayList<>();
 
+    @Column(name = "schedule_id")
     private Long scheduleId;
 
+    @Column(name = "date_operation_id")
     private Long dateOperationId;
 
+    @Column(name = "time_operation_id")
     private Long timeOperationId;
 
+    @Column(name = "store_id")
     private Long storeId;
 
     private LocalDate date;

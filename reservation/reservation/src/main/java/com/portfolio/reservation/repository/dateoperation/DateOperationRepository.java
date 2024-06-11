@@ -20,4 +20,6 @@ public interface DateOperationRepository extends JpaRepository<DateOperation, Lo
             @Param("now") LocalDate now);
 
     Optional<DateOperation> findByIdAndExpiredAtIsNull(Long id);
+
+    Optional<DateOperation> findTopByOrderById();
 }

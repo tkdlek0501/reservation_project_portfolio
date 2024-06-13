@@ -36,4 +36,6 @@ public interface DateTableRepository extends JpaRepository<DateTable, Long> {
             @Param("date") LocalDate date,
             @Param("dateTableId") Long dateTableId
     );
+
+    List<DateTable> findAllByDateOperationId(Long dateOperationId);
 }

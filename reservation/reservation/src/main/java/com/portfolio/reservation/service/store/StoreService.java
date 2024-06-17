@@ -95,4 +95,10 @@ public class StoreService {
         return storeRepository.findByUserIdAndExpiredAtIsNull(userId)
                 .orElseThrow(NotFoundStoreException::new);
     }
+
+    public Store findById(Long id) {
+
+        return storeRepository.findByIdAndExpiredAtIsNull(id)
+                .orElseThrow(NotFoundStoreException::new);
+    }
 }

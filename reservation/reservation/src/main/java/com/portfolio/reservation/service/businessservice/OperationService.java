@@ -15,6 +15,7 @@ import com.portfolio.reservation.exception.operation.OverlapTimeOperationExcepti
 import com.portfolio.reservation.repository.timetable.TimeTableRepository;
 import com.portfolio.reservation.service.dateoperation.DateOperationService;
 import com.portfolio.reservation.service.datetable.DateTableService;
+import com.portfolio.reservation.service.holiday.HolidayService;
 import com.portfolio.reservation.service.holiday.OtherHolidayService;
 import com.portfolio.reservation.service.holiday.RegularHolidayService;
 import com.portfolio.reservation.service.schedule.ScheduleService;
@@ -48,8 +49,7 @@ public class OperationService {
     private final DateTableService dateTableService;
     private final TimeTableService timeTableService;
     private final ReservationService reservationService;
-    private final OtherHolidayService otherHolidayService;
-    private final RegularHolidayService regularHolidayService;
+    private final HolidayService holidayService;
 
     /**
      * 기본 운영 시간을 생성합니다.
@@ -209,7 +209,7 @@ public class OperationService {
     }
 
     /*
-     * 예약 스케줄 기간 조회를 합니다 + 해당 일자의 타임테이블을 조회합니다.
+     * 예약 스케줄 기간 조회를 합니다(해당 일자의 타임테이블을 조회합니다.)
     */
     public List<DateTableResponse> getTimeTable(Long storeId, SearchTimeTableRequest request) {
 
@@ -237,7 +237,7 @@ public class OperationService {
         });
 
         // 매장의 휴일 목록
-        List<LocalDate> holidayDates = getHolidayDates(storeId, request.getStartDate(), request.getEndDate());
+        List<LocalDate> holidayDates = holidayService.getHolidayDates(storeId, request.getStartDate(), request.getEndDate());
 
         // 휴무일이면 response 내 isHoliday = true 로 수정
         responses
@@ -395,50 +395,6 @@ public class OperationService {
                 });
 
         return true;
-    }
-
-    // Holiday 의 일자 가져오기
-    private List<LocalDate> getHolidayDates(Long storeId, LocalDate startDate, LocalDate endDate) {
-
-        List<OtherHoliday> otherHolidays = otherHolidayService.searchByStoreId(storeId, startDate, endDate);
-        Set<LocalDate> dates = new HashSet<>(getDatesOfOtherHolidays(otherHolidays));
-
-        RegularHoliday regularHoliday = regularHolidayService.findByStoreId(storeId);
-        dates.addAll(getDatesOfRegularHoliday(regularHoliday, startDate, endDate));
-
-        return new ArrayList<>(dates);
-    }
-
-    private List<LocalDate> getDatesOfOtherHolidays(List<OtherHoliday> otherHolidays) {
-
-        Set<LocalDate> dates = new HashSet<>();
-
-        for (OtherHoliday otherHoliday : otherHolidays) {
-            LocalDate startDate = otherHoliday.getStartDate();
-            LocalDate endDate = otherHoliday.getEndDate();
-
-            while (!startDate.isAfter(endDate)) {
-                dates.add(startDate);
-                startDate = startDate.plusDays(1);
-            }
-        }
-        return dates.stream().toList();
-    }
-
-    private List<LocalDate> getDatesOfRegularHoliday(RegularHoliday regularHoliday, LocalDate startDate, LocalDate endDate) {
-
-        List<LocalDate> dates = new ArrayList<>();
-
-        List<String> dayOfWeeks = regularHoliday.getDayOfWeekList();
-
-        while (!startDate.isAfter(endDate)) {
-            if (dayOfWeeks.contains(startDate.getDayOfWeek().toString())) {
-                dates.add(startDate);
-            }
-            startDate = startDate.plusDays(1);
-        }
-
-        return dates;
     }
 
 }

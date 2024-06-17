@@ -28,6 +28,7 @@ public class DateOperationResponse {
 
     private TimeUnitType timeUnit;
 
+    @Builder.Default
     private List<TimeOperationResponse> timeOperations = new ArrayList<>();
 
     public static DateOperationResponse of(DateOperation dateOperation) {

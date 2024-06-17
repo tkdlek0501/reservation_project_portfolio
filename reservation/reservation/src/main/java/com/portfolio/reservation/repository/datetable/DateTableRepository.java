@@ -38,4 +38,16 @@ public interface DateTableRepository extends JpaRepository<DateTable, Long> {
     );
 
     List<DateTable> findAllByDateOperationId(Long dateOperationId);
+
+    @Query("SELECT dt" +
+            " FROM DateTable dt" +
+            " WHERE dt.scheduleId = :scheduleId" +
+            " AND dt.available = :dailyAvailable" +
+            " AND dt.date = :date" +
+            " AND dt.expiredAt IS NULL")
+    List<DateTable> findAllByDate(
+            @Param("scheduleId") Long scheduleId,
+            @Param("dailyAvailable") boolean dailyAvailable,
+            @Param("date") LocalDate date
+    );
 }

@@ -12,4 +12,6 @@ public interface StoreRepository extends JpaRepository<Store, Long> {
     Optional<Store> findByUserIdAndExpiredAtIsNull(Long userId);
 
     Optional<Store> findTopByOrderById();
+
+    Optional<Store> findByIdAndExpiredAtIsNull(Long id);
 }

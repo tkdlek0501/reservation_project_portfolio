@@ -2,6 +2,7 @@ package com.portfolio.reservation.service.timetable;
 
 import com.portfolio.reservation.domain.timetable.TimeTable;
 import com.portfolio.reservation.dto.operation.TimeTableWithDateTableDto;
+import com.portfolio.reservation.exception.timetable.NotFoundTimeTableException;
 import com.portfolio.reservation.repository.timetable.TimeTableRepository;
 import com.portfolio.reservation.repository.timetable.TimeTableRepositoryCustom;
 import lombok.RequiredArgsConstructor;
@@ -38,5 +39,11 @@ public class TimeTableService {
     public void bulkExpireByIds(List<Long> ids) {
 
         timeTableRepository.bulkExpireByIds(ids, LocalDateTime.now());
+    }
+
+    public TimeTable findById(Long id) {
+
+        return timeTableRepository.findByIdAndExpiredAtIsNull(id)
+                .orElseThrow(NotFoundTimeTableException::new);
     }
 }

@@ -56,4 +56,29 @@ public class Reservation extends BaseEntity {
     private LocalDateTime updatedAt;
 
     private LocalDateTime expiredAt;
+
+    public static Reservation create(
+            Long userId,
+            Long storeId,
+            Long timeTableId,
+            LocalDateTime requestDateTime,
+            int persons,
+            LocalDate date,
+            LocalTime time,
+            String lastReason
+    ) {
+
+        return Reservation.builder()
+                .userId(userId)
+                .storeId(storeId)
+                .timeTableId(timeTableId)
+                .requestDateTime(requestDateTime)
+                .persons(persons)
+                .date(date)
+                .time(time)
+                .lastReason(lastReason)
+                .status(ReservationStatus.RESERVE_CONFIRM)
+                .createdAt(LocalDateTime.now())
+                .build();
+    }
 }

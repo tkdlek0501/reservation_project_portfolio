@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface TimeTableRepository extends JpaRepository<TimeTable, Long> {
 
@@ -31,4 +32,6 @@ public interface TimeTableRepository extends JpaRepository<TimeTable, Long> {
             @Param("ids") List<Long> ids,
             @Param("now") LocalDateTime now
     );
+
+    Optional<TimeTable> findByIdAndExpiredAtIsNull(Long id);
 }

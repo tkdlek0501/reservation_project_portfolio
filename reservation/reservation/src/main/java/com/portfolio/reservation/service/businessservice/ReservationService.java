@@ -1,20 +1,25 @@
 package com.portfolio.reservation.service.businessservice;
 
 import com.portfolio.reservation.domain.reservation.Reservation;
+import com.portfolio.reservation.domain.reservation.ReservationHistory;
 import com.portfolio.reservation.domain.reservation.ReservationStatus;
 import com.portfolio.reservation.domain.schedule.Schedule;
 import com.portfolio.reservation.domain.schedule.type.SameDayApprovalType;
-import com.portfolio.reservation.domain.store.Store;
 import com.portfolio.reservation.domain.timetable.DateTable;
 import com.portfolio.reservation.domain.timetable.TimeTable;
+import com.portfolio.reservation.domain.user.User;
 import com.portfolio.reservation.dto.reservation.AvailableTimeDto;
+import com.portfolio.reservation.dto.reservation.ReservationCreateRequest;
 import com.portfolio.reservation.dto.reservation.TimeTableDto;
+import com.portfolio.reservation.exception.reservation.*;
 import com.portfolio.reservation.repository.reservation.ReservationRepository;
 import com.portfolio.reservation.repository.reservation.ReservationRepositoryCustom;
 import com.portfolio.reservation.service.datetable.DateTableService;
 import com.portfolio.reservation.service.holiday.HolidayService;
+import com.portfolio.reservation.service.reservationhistory.ReservationHistoryService;
 import com.portfolio.reservation.service.schedule.ScheduleService;
-import com.portfolio.reservation.service.store.StoreService;
+import com.portfolio.reservation.service.timetable.TimeTableService;
+import com.portfolio.reservation.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,6 +44,9 @@ public class ReservationService {
     private final ScheduleService scheduleService;
     private final DateTableService dateTableService;
     private final HolidayService holidayService;
+    private final TimeTableService timeTableService;
+    private final ReservationHistoryService reservationHistoryService;
+    private final UserService userService;
 
     DateTimeFormatter yyyyMMddFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
@@ -184,7 +192,139 @@ public class ReservationService {
                 && rawTime.minusHours(hour).isBefore(LocalTime.now()));
     }
 
-    // TODO: 예약
+    // 예약 요청
+    @Transactional
+    public void createUserReservation(Long storeId, ReservationCreateRequest request) {
 
-    // TODO: 예약 상태 관리
+        // timeTable 찾기
+        TimeTable timeTable = timeTableService.findById(request.getTimeId());
+
+        // validation
+        Schedule schedule = validateForReservation(storeId, request.getPersonCount(), timeTable, null);
+
+        Long userId = userService.getMe().getUserId();
+
+        // reservation 등록
+        Reservation reservation = reservationRepository.save(Reservation.create(
+                userId,
+                storeId,
+                timeTable.getId(),
+                LocalDateTime.of(timeTable.getDate(), timeTable.getTime()),
+                request.getPersonCount(),
+                timeTable.getDate(),
+                timeTable.getTime(),
+                request.getReserveRequest()
+        ));
+
+        // log 에 추가
+        reservationHistoryService.save(ReservationHistory.create(
+            reservation.getId(),
+            userId,
+            timeTable.getId(),
+            timeTable.getDate(),
+            timeTable.getTime(),
+            request.getPersonCount(),
+            request.getReserveRequest()
+        ));
+    }
+
+    /**
+     * 예약 등록 유효성 검사
+     */
+    private Schedule validateForReservation(Long storeId, int persons, TimeTable timeTable, Long reservationId) {
+
+        // 휴무일 체크
+        List<LocalDate> holidayDates = holidayService.getHolidayDates(storeId, timeTable.getDate(), timeTable.getDate());
+        if (!holidayDates.isEmpty()) {
+            throw new NotAllowedReservationAboutHolidayException();
+        }
+
+        // dateTable 기준 인원 확인
+        // 이미 예약된 인원
+        Map<DateTable, Long> personDateMap = reservationRepositoryCustom.countByDateAndStatusesGroupByDateTable(timeTable.getScheduleId(), List.of(timeTable.getDate()), ReservationStatus.getImpossibleReservations(), reservationId);
+        DateTable dateTable = dateTableService.findById(timeTable.getDateTableId());
+        long dateReservationPersons = personDateMap.getOrDefault(dateTable, 0L);
+        // dateTable 에서 허용하는 최대 인원
+        int maxPersonOfDateTable = dateTable.getMaxPerson();
+
+        if (!validateDateReservationPerson(persons, dateReservationPersons, maxPersonOfDateTable)) {
+            throw new NotAllowedReservationAboutMaxPersonOfDateTableException();
+        }
+
+        // time 개별 설정 사용시 time 최대 인원 확인
+        if (dateTable.isHourlySetting()) {
+            // 이미 예약된 인원
+            Map<LocalDateTime, Long> personTimeMap = reservationRepositoryCustom.countByTimeAndStatusesGroupByTime(timeTable.getScheduleId(), List.of(timeTable.getTime()), ReservationStatus.getImpossibleReservations(), reservationId);
+            long timeReservationPersons = personTimeMap.getOrDefault(LocalDateTime.of(timeTable.getDate(), timeTable.getTime()), 0L);
+
+            if (!validateTimeReservationPerson(persons, timeReservationPersons, timeTable.getMaxPerson())) {
+                throw new NotAllowedReservationAboutMaxPersonOfTimeTableException();
+            }
+        }
+
+        // schedule
+        Schedule schedule = scheduleService.findById(timeTable.getScheduleId());
+
+        // 한 번에 예약 받을 수 있는 인원
+        if (!validateRequestMinPerson(persons, schedule.getRequestMinPerson())) {
+            throw new NotAllowedReservationAboutRequestMinPersonException();
+        } else if (!validateRequestMaxPerson(persons, schedule.getRequestMaxPerson())) {
+            throw new NotAllowedReservationAboutRequestMaxPersonException();
+        }
+
+        // 당일 예약 필터링
+        if (!validateSameDayOfNowDate(timeTable.getDate())) { // 오늘 날짜이면
+            if (!validateSameDayOfNowTime(timeTable.getTime())) {
+                throw new NotAllowedReservationAboutSameTimeException();
+            }
+            SameDayApprovalType sameDayRequest = schedule.getSameDayRequestApproval();
+            if (!validateSameDayOfNoneType(sameDayRequest)) {
+                throw new NotAllowedReservationAboutSameDateException();
+            }
+            if (!validateSameDayOfHourType(sameDayRequest, timeTable.getTime())) {
+                throw new NotAllowedReservationAboutSameDayTypeException(sameDayRequest.getHour());
+            }
+        }
+
+        return schedule;
+    }
+
+    /**
+     * 해당 dataTable 의 예약 인원 validation 을 합니다.
+     */
+    public static boolean validateDateReservationPerson(int persons, long dateReservationPersons, int maxPersonOfDay) {
+
+        return dateReservationPersons + persons <= maxPersonOfDay;
+    }
+
+    /**
+     * dateTable의 hourlySetting에 따라 예약 인원 validation을 합니다.
+     */
+    public static boolean validateTimeReservationPerson(int persons, long timeReservationPersons, int maxPersonOfTime) {
+
+//        시간별 설정이 돼있을 때, 해당 시간 예약 인원 조건을 통과하면 true
+        return maxPersonOfTime < 0 || timeReservationPersons + persons <= maxPersonOfTime;
+    }
+
+    /**
+     * 요청 인원이 한 번에 예약 가능한 최소 인원보다 크면 true
+     */
+    public static boolean validateRequestMinPerson(int persons, int requestMinPersons) {
+
+        return persons >= requestMinPersons;
+    }
+
+    /**
+     * 요청 인원이 한 번에 예약 가능한 최소 인원보다 크면 true
+     */
+    public static boolean validateRequestMaxPerson(int persons, int requestMaxPersons) {
+
+        return persons <= requestMaxPersons;
+    }
+
+    // TODO: 예약 변경
+
+    // TODO: 예약 취소
+
+    // TODO: 예약 상태 관리 ~
 }

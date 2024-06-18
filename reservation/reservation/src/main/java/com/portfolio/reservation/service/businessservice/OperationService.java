@@ -236,7 +236,7 @@ public class OperationService {
             responses.add(DateTableResponse.of(key, value, reservationMap));
         });
 
-        // 매장의 휴일 목록
+        // 매장의 휴일/휴무일 목록
         List<LocalDate> holidayDates = holidayService.getHolidayDates(storeId, request.getStartDate(), request.getEndDate());
 
         // 휴무일이면 response 내 isHoliday = true 로 수정

@@ -5,12 +5,10 @@ import com.portfolio.reservation.domain.reservation.ReservationHistory;
 import com.portfolio.reservation.domain.reservation.ReservationStatus;
 import com.portfolio.reservation.domain.schedule.Schedule;
 import com.portfolio.reservation.domain.schedule.type.SameDayApprovalType;
+import com.portfolio.reservation.domain.store.Store;
 import com.portfolio.reservation.domain.timetable.DateTable;
 import com.portfolio.reservation.domain.timetable.TimeTable;
-import com.portfolio.reservation.domain.user.User;
-import com.portfolio.reservation.dto.reservation.AvailableTimeDto;
-import com.portfolio.reservation.dto.reservation.ReservationCreateRequest;
-import com.portfolio.reservation.dto.reservation.TimeTableDto;
+import com.portfolio.reservation.dto.reservation.*;
 import com.portfolio.reservation.exception.reservation.*;
 import com.portfolio.reservation.repository.reservation.ReservationRepository;
 import com.portfolio.reservation.repository.reservation.ReservationRepositoryCustom;
@@ -18,9 +16,12 @@ import com.portfolio.reservation.service.datetable.DateTableService;
 import com.portfolio.reservation.service.holiday.HolidayService;
 import com.portfolio.reservation.service.reservationhistory.ReservationHistoryService;
 import com.portfolio.reservation.service.schedule.ScheduleService;
+import com.portfolio.reservation.service.store.StoreService;
 import com.portfolio.reservation.service.timetable.TimeTableService;
 import com.portfolio.reservation.service.user.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,13 +48,14 @@ public class ReservationService {
     private final TimeTableService timeTableService;
     private final ReservationHistoryService reservationHistoryService;
     private final UserService userService;
+    private final StoreService storeService;
 
     DateTimeFormatter yyyyMMddFormatter = DateTimeFormatter.ofPattern("yyyyMMdd");
 
     // 예약 인원 차지 상태 반환
     public List<Reservation> getActive(List<Long> timeTableIds) {
 
-        return reservationRepository.getActive(timeTableIds, ReservationStatus.getImpossibleReservations());
+        return reservationRepository.getActive(timeTableIds, ReservationStatus.getOccupiedReservations());
     }
 
     /**
@@ -70,7 +72,7 @@ public class ReservationService {
 
         List<LocalDate> dates = dateTables.stream().map(DateTable::getDate).collect(Collectors.toList());
 
-        Map<DateTable, Long> personDateMap = reservationRepositoryCustom.countByDateAndStatusesGroupByDateTable(scheduleId, dates, ReservationStatus.getImpossibleReservations(), reserveId);
+        Map<DateTable, Long> personDateMap = reservationRepositoryCustom.countByDateAndStatusesGroupByDateTable(scheduleId, dates, ReservationStatus.getOccupiedReservations(), reserveId);
 
         List<LocalTime> times = new ArrayList<>();
 
@@ -88,7 +90,7 @@ public class ReservationService {
                 .distinct()
                 .collect(Collectors.toList());
 
-        Map<LocalDateTime, Long> personTimeMap = reservationRepositoryCustom.countByTimeAndStatusesGroupByTime(scheduleId, times, ReservationStatus.getImpossibleReservations(), reserveId);
+        Map<LocalDateTime, Long> personTimeMap = reservationRepositoryCustom.countByTimeAndStatusesGroupByTime(scheduleId, times, ReservationStatus.getOccupiedReservations(), reserveId);
 
         // 매장의 휴일 목록
         List<LocalDate> holidayDates = holidayService.getHolidayDates(storeId, dateCondition, dateCondition);
@@ -192,7 +194,9 @@ public class ReservationService {
                 && rawTime.minusHours(hour).isBefore(LocalTime.now()));
     }
 
-    // 예약 요청
+    /**
+     * 예약 요청
+     */
     @Transactional
     public void createUserReservation(Long storeId, ReservationCreateRequest request) {
 
@@ -200,7 +204,7 @@ public class ReservationService {
         TimeTable timeTable = timeTableService.findById(request.getTimeId());
 
         // validation
-        Schedule schedule = validateForReservation(storeId, request.getPersonCount(), timeTable, null);
+        validateForReservation(storeId, request.getPersonCount(), timeTable, null);
 
         Long userId = userService.getMe().getUserId();
 
@@ -221,6 +225,7 @@ public class ReservationService {
             reservation.getId(),
             userId,
             timeTable.getId(),
+            ReservationStatus.RESERVE_CONFIRM,
             timeTable.getDate(),
             timeTable.getTime(),
             request.getPersonCount(),
@@ -241,7 +246,7 @@ public class ReservationService {
 
         // dateTable 기준 인원 확인
         // 이미 예약된 인원
-        Map<DateTable, Long> personDateMap = reservationRepositoryCustom.countByDateAndStatusesGroupByDateTable(timeTable.getScheduleId(), List.of(timeTable.getDate()), ReservationStatus.getImpossibleReservations(), reservationId);
+        Map<DateTable, Long> personDateMap = reservationRepositoryCustom.countByDateAndStatusesGroupByDateTable(timeTable.getScheduleId(), List.of(timeTable.getDate()), ReservationStatus.getOccupiedReservations(), reservationId);
         DateTable dateTable = dateTableService.findById(timeTable.getDateTableId());
         long dateReservationPersons = personDateMap.getOrDefault(dateTable, 0L);
         // dateTable 에서 허용하는 최대 인원
@@ -254,7 +259,7 @@ public class ReservationService {
         // time 개별 설정 사용시 time 최대 인원 확인
         if (dateTable.isHourlySetting()) {
             // 이미 예약된 인원
-            Map<LocalDateTime, Long> personTimeMap = reservationRepositoryCustom.countByTimeAndStatusesGroupByTime(timeTable.getScheduleId(), List.of(timeTable.getTime()), ReservationStatus.getImpossibleReservations(), reservationId);
+            Map<LocalDateTime, Long> personTimeMap = reservationRepositoryCustom.countByTimeAndStatusesGroupByTime(timeTable.getScheduleId(), List.of(timeTable.getTime()), ReservationStatus.getOccupiedReservations(), reservationId);
             long timeReservationPersons = personTimeMap.getOrDefault(LocalDateTime.of(timeTable.getDate(), timeTable.getTime()), 0L);
 
             if (!validateTimeReservationPerson(persons, timeReservationPersons, timeTable.getMaxPerson())) {
@@ -322,9 +327,123 @@ public class ReservationService {
         return persons <= requestMaxPersons;
     }
 
-    // TODO: 예약 변경
+    /**
+     * 예약 변경
+     */
+    @Transactional
+    public void updateUserReservation(Long storeId, ReservationModifyRequest request) {
 
-    // TODO: 예약 취소
+        // 기존 reservation 찾아와서 변경 요청 가능한 상태인지 확인
+        Reservation reservation = reservationRepository.findById(request.getReservationId())
+                .orElseThrow(NotFoundReservationException::new);
+
+        if (!ReservationStatus.getPossibleModify().contains(reservation.getStatus())){
+            throw new NotAllowedReservationAboutStatusException();
+        }
+
+        // 이전 예약
+        TimeTable orgTimeTable = timeTableService.findById(reservation.getTimeTableId());
+
+        // 이전 예약과 같은 내용인지 확인
+        if(orgTimeTable.getId().equals(request.getTimeId())
+            && reservation.getPersons() == request.getPersonCount()
+            && Objects.equals(reservation.getLastReason(), request.getReserveRequest())
+        ) {
+            throw new NotAllowedSameReservationException();
+        }
+
+        TimeTable timeTable = timeTableService.findById(request.getTimeId());
+
+        // 공통 validation
+        validateForReservation(storeId, request.getPersonCount(), timeTable, request.getReservationId());
+
+        // reservation 상태 업데이트; 예약 변경 요청 (아직 변경 되면 안됨 승인 후 변경돼야 함)
+        reservation.updateToChangeRequest();
+
+        Long userId = userService.getMe().getUserId();
+
+        // log 에 추가
+        reservationHistoryService.save(ReservationHistory.create(
+                reservation.getId(),
+                userId,
+                timeTable.getId(),
+                ReservationStatus.CHANGE_REQUEST,
+                timeTable.getDate(),
+                timeTable.getTime(),
+                request.getPersonCount(),
+                request.getReserveRequest()
+        ));
+    }
+
+    /**
+     * 예약 취소
+     */
+    @Transactional
+    public void deleteReservation(Long storeId, ReservationCancelRequest request) {
+
+        Long userId = userService.getMe().getUserId();
+
+        // 기존 reservation 찾아와서 취소 가능한 상태인지 확인
+        Reservation reservation = reservationRepository.findById(request.getReservationId())
+                .orElseThrow(NotFoundReservationException::new);
+
+        if (!ReservationStatus.getPossibleModify().contains(reservation.getStatus())){
+            throw new NotAllowedReservationAboutStatusException();
+        }
+
+        TimeTable timeTable = timeTableService.findById(reservation.getTimeTableId());
+        Schedule schedule = scheduleService.findById(timeTable.getScheduleId());
+
+        // 당일 예약 필터링
+        if (!validateSameDayOfNowDate(timeTable.getDate())) { // 오늘 날짜이면
+            if (!validateSameDayOfNowTime(timeTable.getTime())) {
+                throw new NotAllowedReservationAboutSameTimeException();
+            }
+            SameDayApprovalType sameDayRequest = schedule.getSameDayRequestApproval();
+            if (!validateSameDayOfNoneType(sameDayRequest)) {
+                throw new NotAllowedReservationAboutSameDateException();
+            }
+            if (!validateSameDayOfHourType(sameDayRequest, timeTable.getTime())) {
+                throw new NotAllowedReservationAboutSameDayTypeException(sameDayRequest.getHour());
+            }
+        }
+
+        // reservation 상태 업데이트; 예약 취소 요청
+        reservation.updateToCancelConfirm();
+
+        // log 에 추가
+        reservationHistoryService.save(ReservationHistory.create(
+                reservation.getId(),
+                userId,
+                timeTable.getId(),
+                ReservationStatus.CANCEL_CONFIRM,
+                timeTable.getDate(),
+                timeTable.getTime(),
+                reservation.getPersons(),
+                request.getCancelReason()
+        ));
+    }
+
+    /**
+     * 매장 예약 조회
+     */
+    public Page<ReservationResponse> findReservation(SearchReservationRequest request, Pageable pageable) {
+
+        Long userId = userService.getMe().getUserId();
+        Store store = storeService.findByUserId(userId);
+
+        ReservationSearchCondition condition = ReservationSearchCondition.
+                of(store.getId(), request.getStartDate(), request.getEndDate(), request.getStatuses(), request.getKeyword(), request.getKeywordType());
+
+        Page<ReservationDto> reservations = reservationRepositoryCustom.searchReservationByCondition(condition, pageable);
+
+        return reservations.map(ReservationResponse::of);
+    }
+
+    // TODO: 예약 상세 조회 - 예약 히스토리를 같이 조회
+
+    // TODO: 유저 예약 조회
 
     // TODO: 예약 상태 관리 ~
+
 }

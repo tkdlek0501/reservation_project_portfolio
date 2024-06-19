@@ -11,11 +11,6 @@ import lombok.Getter;
 public class ReservationCreateRequest {
 
     @NotNull
-    @NotBlank
-    @Schema(name = "userId", description = "고객 id", requiredMode = Schema.RequiredMode.NOT_REQUIRED, example = "1234" )
-    private Long userId;
-
-    @NotNull
     @Schema(name="timeId", description = "예약시간 key", requiredMode = Schema.RequiredMode.REQUIRED, example = "1234")
     private Long timeId;
 

@@ -1,19 +1,28 @@
 package com.portfolio.reservation.repository.reservation;
 
 import com.portfolio.reservation.domain.reservation.QReservation;
+import com.portfolio.reservation.domain.reservation.Reservation;
 import com.portfolio.reservation.domain.reservation.ReservationStatus;
 import com.portfolio.reservation.domain.schedule.QSchedule;
 import com.portfolio.reservation.domain.store.QStore;
 import com.portfolio.reservation.domain.timetable.DateTable;
 import com.portfolio.reservation.domain.timetable.QDateTable;
 import com.portfolio.reservation.domain.timetable.QTimeTable;
-import com.portfolio.reservation.dto.reservation.PersonDateDto;
-import com.portfolio.reservation.dto.reservation.PersonDateTimeDto;
+import com.portfolio.reservation.domain.user.QUser;
+import com.portfolio.reservation.dto.reservation.*;
+import com.querydsl.core.types.Order;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.core.types.dsl.PathBuilder;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -33,6 +42,7 @@ public class ReservationRepositoryCustom {
     QStore store = QStore.store;
     QTimeTable timeTable = QTimeTable.timeTable;
     QSchedule schedule = QSchedule.schedule;
+    QUser user = QUser.user;
 
     public Map<DateTable, Long> countByDateAndStatusesGroupByDateTable(Long scheduleId, List<LocalDate> dates, List<ReservationStatus> statuses, Long reservationId) {
 
@@ -137,5 +147,77 @@ public class ReservationRepositoryCustom {
      */
     private BooleanExpression timeIn(List<LocalTime> times) {
         return !times.isEmpty() ? reservation.time.in(times) : null;
+    }
+
+    /**
+     * 검색 조건에 따라 예약을 조회한다.
+     */
+    public Page<ReservationDto> searchReservationByCondition(ReservationSearchCondition condition, Pageable pageable){
+
+        List<ReservationDto> content =
+                queryFactory
+                        .select(Projections.constructor(ReservationDto.class,
+                                reservation.status,
+                                user.nickname,
+                                reservation.persons,
+                                reservation.requestDateTime,
+                                reservation.id
+                        ))
+                        .from(reservation)
+                        .leftJoin(user)
+                        .on(user.id.eq(reservation.userId))
+                        .where(
+                                storeIdEq(condition.getStoreId()),
+                                dateBetween(condition.getStartDate(), condition.getEndDate()),
+                                statusIn(condition.getStatuses()),
+                                keywordContainsByType(condition.getKeyword(), condition.getKeywordType()),
+                                reservation.expiredAt.isNull()
+                        )
+                .orderBy()
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .fetch();
+
+        Long count = queryFactory
+                .select(reservation.count())
+                .from(reservation)
+                .where(
+                        storeIdEq(condition.getStoreId()),
+                        dateBetween(condition.getStartDate(), condition.getEndDate()),
+                        statusIn(condition.getStatuses()),
+                        keywordContainsByType(condition.getKeyword(), condition.getKeywordType()),
+                        reservation.expiredAt.isNull()
+                )
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, count != null ? count : 0);
+    }
+
+    public OrderSpecifier orderById() {
+
+        PathBuilder orderByExpression = new PathBuilder(Reservation.class, "reservation");
+
+        return new OrderSpecifier(Order.ASC, orderByExpression.get("reservationDate"));
+    }
+
+    private BooleanExpression dateBetween(LocalDate startDate, LocalDate endDate) {
+
+        return startDate != null && endDate != null ? reservation.requestDateTime.between(LocalDateTime.of(startDate, LocalTime.MIN), LocalDateTime.of(endDate, LocalTime.MAX)) : null;
+    }
+
+    /**
+     * ReservationKeywordType에 따라 조건
+     */
+    private BooleanExpression keywordContainsByType(String keyword, ReservationKeywordType type) {
+        if (!StringUtils.hasText(keyword)) {
+            return null;
+        }
+        if (type == ReservationKeywordType.NAME) {
+            return keyword != null ? user.nickname.like('%' + keyword + '%') : null;
+//        } else if (type == ReservationKeywordType.PHONE) {
+        } else if (type == ReservationKeywordType.NO) {
+            return keyword != null ? reservation.id.eq(Long.valueOf(keyword)) : null;
+        }
+        return null;
     }
 }

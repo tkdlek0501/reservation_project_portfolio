@@ -81,4 +81,12 @@ public class Reservation extends BaseEntity {
                 .createdAt(LocalDateTime.now())
                 .build();
     }
+
+    public void updateToChangeRequest() {
+        this.status = ReservationStatus.CHANGE_REQUEST;
+    }
+
+    public void updateToCancelConfirm() {
+        this.status = ReservationStatus.CANCEL_CONFIRM;
+    }
 }

@@ -43,6 +43,8 @@ public class User extends BaseEntity {
     @Column(length = 50)
     private String nickname; // 닉네임
 
+    private String phone;
+
     @Enumerated(value = EnumType.STRING)
     private AuthorityType authority; // 권한
 

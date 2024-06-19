@@ -48,6 +48,7 @@ public class ReservationHistory extends BaseEntity {
             Long reservationId,
             Long userId,
             Long timeTableId,
+            ReservationStatus status,
             LocalDate date,
             LocalTime time,
             int persons,
@@ -58,6 +59,7 @@ public class ReservationHistory extends BaseEntity {
                 .reservationId(reservationId)
                 .userId(userId)
                 .timeTableId(timeTableId)
+                .status(status)
                 .date(date)
                 .time(time)
                 .persons(persons)

@@ -62,6 +62,12 @@ public enum ErrorCode {
     NOT_ALLOWED_RESERVATION_ABOUT_SAME_DATE("R007", "선택하신 시간의 당일 예약은 불가능합니다."),
 
     NOT_ALLOWED_RESERVATION_ABOUT_SAME_DAY_TYPE("R008", "시간 이전까지만 예약이 가능합니다."),
+
+    NOT_FOUND_RESERVATION("R009", "예약 건을 찾을 수 없습니다."),
+
+    NOT_ALLOWED_RESERVATION_ABOUT_STATUS("R010", "해당 예약은 변경이나 취소가 불가능한 상태입니다."),
+
+    NOT_ALLOWED_SAME_RESERVATION("R011", "기존 예약과 변경하신 내용이 없습니다."),
     ;
 
     private final String code;

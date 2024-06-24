@@ -28,13 +28,16 @@ public class ReservationSearchCondition {
 
     private ReservationKeywordType keywordType;
 
+    private Long userId;
+
     public static ReservationSearchCondition of(
             Long storeId,
             LocalDate startDate,
             LocalDate endDate,
             List<ReservationStatus> statuses,
             String keyword,
-            ReservationKeywordType keywordType
+            ReservationKeywordType keywordType,
+            Long userId
     ) {
 
         return ReservationSearchCondition.builder()
@@ -44,6 +47,7 @@ public class ReservationSearchCondition {
                 .statuses(statuses)
                 .keyword(keyword)
                 .keywordType(keywordType)
+                .userId(userId)
                 .build();
     }
 }

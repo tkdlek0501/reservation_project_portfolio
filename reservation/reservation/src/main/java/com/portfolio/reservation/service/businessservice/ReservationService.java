@@ -433,16 +433,38 @@ public class ReservationService {
         Store store = storeService.findByUserId(userId);
 
         ReservationSearchCondition condition = ReservationSearchCondition.
-                of(store.getId(), request.getStartDate(), request.getEndDate(), request.getStatuses(), request.getKeyword(), request.getKeywordType());
+                of(store.getId(), request.getStartDate(), request.getEndDate(), request.getStatuses(), request.getKeyword(), request.getKeywordType(), null);
 
         Page<ReservationDto> reservations = reservationRepositoryCustom.searchReservationByCondition(condition, pageable);
 
         return reservations.map(ReservationResponse::of);
     }
 
-    // TODO: 예약 상세 조회 - 예약 히스토리를 같이 조회
+    /**
+    *  예약 상세 조회
+     */
+    public ReservationDetailResponse getReservationDetail(Long reservationId) {
 
-    // TODO: 유저 예약 조회
+        ReservationDetailDto dto = reservationRepositoryCustom.getDetail(reservationId);
+        List<ReservationHistory> histories = reservationHistoryService.findByReservationId(reservationId);
+
+        return ReservationDetailResponse.of(dto, histories);
+    }
+
+    /**
+     *  본인 예약 조회
+     */
+    public Page<ReservationUserResponse> getMyReservation(SearchReservationRequest request, Pageable pageable) {
+
+        Long userId = userService.getMe().getUserId();
+
+        ReservationSearchCondition condition = ReservationSearchCondition.
+                of(null, request.getStartDate(), request.getEndDate(), request.getStatuses(), request.getKeyword(), request.getKeywordType(), userId);
+
+        Page<ReservationUserDto> reservations = reservationRepositoryCustom.searchMyReservationByCondition(condition, pageable);
+
+        return reservations.map(ReservationUserResponse::of);
+    }
 
     // TODO: 예약 상태 관리 ~
 

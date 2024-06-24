@@ -1,6 +1,5 @@
 package com.portfolio.reservation.dto.reservation;
 
-import com.portfolio.reservation.domain.reservation.Reservation;
 import com.portfolio.reservation.domain.reservation.ReservationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -14,16 +13,10 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReservationResponse {
+public class ReservationUserResponse {
 
     @Schema(description = "상태(REQUEST... etc.)", example = "RESERVE_REQUEST")
     private ReservationStatus status;
-
-    @Schema(description = "예약자", example = "홍길동")
-    private String name;
-
-    @Schema(description = "전화번호", example = "010xxxxoooo")
-    private String phone;
 
     @Schema(description = "인원", example = "2")
     private int persons;
@@ -31,18 +24,30 @@ public class ReservationResponse {
     @Schema(description = "예약 일자", example = "YYYY-MM-DD HH:mm:SS")
     private LocalDateTime requestDate;
 
+    @Schema(description = "매장 id")
+    private Long storeId;
+
+    @Schema(description = "매장명")
+    private String storeName;
+
     // 상세보기 - id
     @Schema(description = "상세보기를 위한 예약 id(PK)", example = "1")
     private Long reservationId;
 
-    public static ReservationResponse of(ReservationDto reservation) {
+    @Schema(description = "예약 사유")
+    private String lastReason;
 
-        return ReservationResponse.builder()
-                .status(reservation.getStatus())
-                .name(reservation.getUserName())
-                .persons(reservation.getPersons())
-                .requestDate(reservation.getRequestDate())
-                .reservationId(reservation.getReservationId())
+    public static ReservationUserResponse of(ReservationUserDto dto) {
+
+        return ReservationUserResponse.builder()
+                .status(dto.getStatus())
+                .persons(dto.getPersons())
+                .requestDate(dto.getRequestDate())
+                .storeId(dto.getStoreId())
+                .storeName(dto.getStoreName())
+                .reservationId(dto.getReservationId())
+                .lastReason(dto.getLastReason())
                 .build();
+
     }
 }

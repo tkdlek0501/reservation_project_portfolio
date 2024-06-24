@@ -85,6 +85,10 @@ public class ReservationRepositoryCustom {
         return storeId != null ? store.id.eq(storeId) : null;
     }
 
+    private BooleanExpression userIdEq(Long userId) {
+        return userId != null ? user.id.eq(userId) : null;
+    }
+
     /**
      * scheduleId가 같은지
      */
@@ -219,5 +223,79 @@ public class ReservationRepositoryCustom {
             return keyword != null ? reservation.id.eq(Long.valueOf(keyword)) : null;
         }
         return null;
+    }
+
+    public ReservationDetailDto getDetail(Long reservationId){
+
+        return queryFactory
+                        .select(Projections.constructor(ReservationDetailDto.class,
+                                reservation.id,
+                                user.id,
+                                user.nickname,
+                                reservation.timeTableId,
+                                reservation.status,
+                                reservation.requestDateTime,
+                                reservation.persons,
+                                reservation.lastReason,
+                                reservation.createdAt
+                        ))
+                        .from(reservation)
+                        .leftJoin(user)
+                        .on(user.id.eq(reservation.userId))
+                        .where(
+                                reservation.id.eq(reservationId),
+                                reservation.expiredAt.isNull()
+                        )
+                        .fetchOne();
+    }
+
+    /**
+     * 검색 조건에 따라 자신의 예약을 조회한다.
+     */
+    public Page<ReservationUserDto> searchMyReservationByCondition(ReservationSearchCondition condition, Pageable pageable){
+
+        List<ReservationUserDto> content =
+                queryFactory
+                        .select(Projections.constructor(ReservationUserDto.class,
+                                reservation.status,
+                                store.id,
+                                store.name,
+                                reservation.persons,
+                                reservation.requestDateTime,
+                                reservation.id,
+                                reservation.lastReason
+                        ))
+                        .from(reservation)
+                        .leftJoin(user)
+                        .on(user.id.eq(reservation.userId))
+                        .leftJoin(store)
+                        .on(store.id.eq(reservation.storeId))
+                        .where(
+                                storeIdEq(condition.getStoreId()),
+                                userIdEq(condition.getUserId()),
+                                dateBetween(condition.getStartDate(), condition.getEndDate()),
+                                statusIn(condition.getStatuses()),
+                                keywordContainsByType(condition.getKeyword(), condition.getKeywordType()),
+                                reservation.expiredAt.isNull()
+                        )
+                        .orderBy()
+                        .offset(pageable.getOffset())
+                        .limit(pageable.getPageSize())
+                        .fetch();
+
+        Long count = queryFactory
+                .select(reservation.count())
+                .from(reservation)
+                .where(
+                        storeIdEq(condition.getStoreId()),
+                        userIdEq(condition.getUserId()),
+                        dateBetween(condition.getStartDate(), condition.getEndDate()),
+                        statusIn(condition.getStatuses()),
+                        keywordContainsByType(condition.getKeyword(), condition.getKeywordType()),
+                        reservation.expiredAt.isNull()
+                )
+                .fetchOne();
+
+        return new PageImpl<>(content, pageable, count != null ? count : 0);
     }
 }

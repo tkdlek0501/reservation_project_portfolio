@@ -10,17 +10,20 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ReservationDto {
+public class ReservationUserDto {
 
     private ReservationStatus status;
 
-    private String userName;
+    private Long storeId;
 
-//    private String phone;
+    private String storeName;
 
     private int persons;
 
     private LocalDateTime requestDate;
 
     private Long reservationId;
+
+    private String lastReason;
 }
+

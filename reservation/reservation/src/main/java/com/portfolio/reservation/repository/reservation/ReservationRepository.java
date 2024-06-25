@@ -13,11 +13,14 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
 
     @Query("SELECT r FROM Reservation r" +
             " WHERE r.timeTableId IN :timeTableIds" +
-            " AND r.status IN :status" +
-            " AND r.expiredAt IS NULL")
+            " AND r.status IN :status")
     List<Reservation> getActive(
             @Param("timeTableIds") List<Long> timeTableIds,
             @Param("status") List<ReservationStatus> status);
 
     Optional<Reservation> findById(Long id);
+
+    Optional<Reservation> findByIdInAndStatusAndUserId(List<Long> ids, ReservationStatus status, Long userId);
+
+    Optional<Reservation> findByIdInAndStatusIn(List<Long> ids, List<ReservationStatus> statuses);
 }

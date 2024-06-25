@@ -55,8 +55,6 @@ public class Reservation extends BaseEntity {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    private LocalDateTime expiredAt;
-
     public static Reservation create(
             Long userId,
             Long storeId,
@@ -86,7 +84,32 @@ public class Reservation extends BaseEntity {
         this.status = ReservationStatus.CHANGE_REQUEST;
     }
 
-    public void updateToCancelConfirm() {
+    public void updateToCancelConfirm(String cancelReason) {
         this.status = ReservationStatus.CANCEL_CONFIRM;
+        this.lastReason = cancelReason;
+    }
+
+    public void updateToChangeConfirm(
+            Long timeTableId,
+            LocalDate date,
+            LocalTime time,
+            String lastReason
+    ) {
+        this.status = ReservationStatus.CHANGE_CONFIRM;
+        this.timeTableId = timeTableId;
+        this.requestDateTime = LocalDateTime.of(date, time);
+        this.date = date;
+        this.time = time;
+        this.lastReason = lastReason;
+    }
+
+    public void update(
+            String lastReason,
+            ReservationStatus status
+    ) {
+        if (lastReason != null) {
+            this.lastReason = lastReason;
+        }
+        this.status = status;
     }
 }

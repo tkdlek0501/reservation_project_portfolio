@@ -8,7 +8,9 @@ import com.portfolio.reservation.domain.schedule.type.SameDayApprovalType;
 import com.portfolio.reservation.domain.store.Store;
 import com.portfolio.reservation.domain.timetable.DateTable;
 import com.portfolio.reservation.domain.timetable.TimeTable;
+import com.portfolio.reservation.domain.user.User;
 import com.portfolio.reservation.dto.reservation.*;
+import com.portfolio.reservation.dto.user.UserResponse;
 import com.portfolio.reservation.exception.reservation.*;
 import com.portfolio.reservation.repository.reservation.ReservationRepository;
 import com.portfolio.reservation.repository.reservation.ReservationRepositoryCustom;
@@ -29,10 +31,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -409,7 +408,7 @@ public class ReservationService {
         }
 
         // reservation 상태 업데이트; 예약 취소 요청
-        reservation.updateToCancelConfirm();
+        reservation.updateToCancelConfirm(request.getCancelReason());
 
         // log 에 추가
         reservationHistoryService.save(ReservationHistory.create(
@@ -466,6 +465,100 @@ public class ReservationService {
         return reservations.map(ReservationUserResponse::of);
     }
 
-    // TODO: 예약 상태 관리 ~
+    /**
+     * 예약 변경 요청 상태 예약을 예약 변경 확인 상태로 변경한다.
+     */
+    @Transactional
+    public void confirmChange(ReservationStatusRequest request) {
 
+        UserResponse user = userService.getMe();
+        Long userId = user.getUserId();
+
+        Reservation reservation = reservationRepository.findByIdInAndStatusAndUserId(request.getReservationIds(), ReservationStatus.CHANGE_REQUEST, userId)
+                .orElseThrow(NotAllowedConfirmChangeException::new);
+
+        updateReservation(userId, reservation, ReservationStatus.CHANGE_CONFIRM, request.getReason());
+    }
+
+    /**
+     * 예약 변경 요청 상태 예약을 예약 변경 거절 상태로 변경한다.
+     */
+    @Transactional
+    public void refuseChange(ReservationStatusRequest request) {
+
+        UserResponse user = userService.getMe();
+        Long userId = user.getUserId();
+
+        Reservation reservation = reservationRepository.findByIdInAndStatusAndUserId(request.getReservationIds(), ReservationStatus.CHANGE_REQUEST, userId)
+                .orElseThrow(NotAllowedConfirmChangeException::new);
+
+        updateReservation(userId, reservation, ReservationStatus.CHANGE_REFUSE, request.getReason());
+    }
+
+    // 예약 확정, 예약 변경 요청, 예약 변경 확인, 예약 변경 거절, -> 관리자 예약 취소
+    /**
+     * 예약을 관리자 예약 취소 상태로 변경한다.
+     */
+    @Transactional
+    public void cancelByStore(ReservationStatusRequest request) {
+
+        Reservation reservation = reservationRepository.findByIdInAndStatusIn(request.getReservationIds(), ReservationStatus.getPossibleStoreCancel())
+                .orElseThrow(NotAllowedConfirmChangeException::new);
+
+        updateReservation(reservation.getUserId(), reservation, ReservationStatus.STORE_CANCEL, request.getReason());
+    }
+
+    // 예약 변경 거절 -> 예약 완료, 고객 노쇼
+    // 예약 변경 확인 -> 예약 완료, 고객 노쇼
+    // 예약 확정 -> 예약 완료, 고객 노쇼
+
+    // 예약 확정, 예약 변경 요청, 예약 변경 확인, 예약 변경 거절, -> 관리자 예약 취소
+    /**
+     * 예약을 관리자 예약 취소 상태로 변경한다.
+     */
+    @Transactional
+    public void complete(ReservationStatusRequest request) {
+
+        Reservation reservation = reservationRepository.findByIdInAndStatusIn(request.getReservationIds(), ReservationStatus.getPossibleComplete())
+                .orElseThrow(NotAllowedConfirmChangeException::new);
+
+        updateReservation(reservation.getUserId(), reservation, ReservationStatus.RESERVE_COMPLETE, null);
+    }
+
+    /**
+     * 예약을 노쇼 상태로 변경한다.
+     */
+    @Transactional
+    public void updateToNoShow(ReservationStatusRequest request) {
+
+        Reservation reservation = reservationRepository.findByIdInAndStatusIn(request.getReservationIds(), ReservationStatus.getPossibleComplete())
+                .orElseThrow(NotAllowedConfirmChangeException::new);
+
+        updateReservation(reservation.getUserId(), reservation, ReservationStatus.CLIENT_NOSHOW, null);
+    }
+    
+
+    /**
+     * 상태 변경에 따라 ReservationHistory 를 저장한다.
+     */
+    private void updateReservation(Long userId, Reservation reservation, ReservationStatus status, String reason) {
+
+        List<ReservationHistory> histories = reservation.getReservationHistories();
+        histories.sort(Comparator.comparing(ReservationHistory::getCreatedAt).reversed());
+        ReservationHistory lastHistory = histories.get(0);
+
+        if (status.equals(ReservationStatus.CHANGE_CONFIRM)) {
+            reservation.updateToChangeConfirm(lastHistory.getTimeTableId(), lastHistory.getDate(), lastHistory.getTime(), lastHistory.getReserveRequest());
+        } else {
+            reservation.update(reason, status);
+        }
+
+        // history
+        ReservationHistory history = ReservationHistory.create(
+                reservation.getId(), userId, reservation.getTimeTableId(), status, lastHistory.getDate(), lastHistory.getTime(), lastHistory.getPersons(), reason
+        );
+
+        // insert log
+        reservationHistoryService.save(history);
+    }
 }

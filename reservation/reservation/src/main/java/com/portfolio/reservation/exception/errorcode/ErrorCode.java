@@ -68,6 +68,8 @@ public enum ErrorCode {
     NOT_ALLOWED_RESERVATION_ABOUT_STATUS("R010", "해당 예약은 변경이나 취소가 불가능한 상태입니다."),
 
     NOT_ALLOWED_SAME_RESERVATION("R011", "기존 예약과 변경하신 내용이 없습니다."),
+
+    NOT_ALLOWED_CONFIRM_CHANGE("R012", "선택한 예약 중 변경이 불가능한 예약이 있습니다."),
     ;
 
     private final String code;

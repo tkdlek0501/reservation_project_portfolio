@@ -39,4 +39,18 @@ public enum ReservationStatus {
     public static List<ReservationStatus> getPossibleModify() {
         return List.of(RESERVE_CONFIRM, CHANGE_CONFIRM, CHANGE_REFUSE);
     }
+
+    /**
+     * 변경이 가능한 상태 조회
+     */
+    public static List<ReservationStatus> getPossibleStoreCancel() {
+        return List.of(RESERVE_CONFIRM, CHANGE_REQUEST, CHANGE_CONFIRM, CHANGE_REFUSE);
+    }
+
+    /**
+     * 완료가 가능한 상태 조회
+     */
+    public static List<ReservationStatus> getPossibleComplete() {
+        return List.of(RESERVE_CONFIRM, CHANGE_CONFIRM, CHANGE_REFUSE);
+    }
 }

@@ -21,6 +21,12 @@ public class ReservationHistoryService {
         reservationHistoryRepository.save(reservationHistory);
     }
 
+    @Transactional
+    public void save(List<ReservationHistory> reservationHistories) {
+
+        reservationHistoryRepository.saveAll(reservationHistories);
+    }
+
     public List<ReservationHistory> findByReservationId(Long reservationId) {
 
         return reservationHistoryRepository.findByReservationId(reservationId);

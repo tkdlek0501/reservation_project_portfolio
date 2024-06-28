@@ -19,8 +19,11 @@ import com.portfolio.reservation.service.holiday.HolidayService;
 import com.portfolio.reservation.service.holiday.OtherHolidayService;
 import com.portfolio.reservation.service.holiday.RegularHolidayService;
 import com.portfolio.reservation.service.schedule.ScheduleService;
+import com.portfolio.reservation.service.store.StoreService;
 import com.portfolio.reservation.service.timeoperation.TimeOperationService;
 import com.portfolio.reservation.service.timetable.TimeTableService;
+import com.portfolio.reservation.service.user.UserService;
+import com.portfolio.reservation.util.SecurityUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,12 +53,15 @@ public class OperationService {
     private final TimeTableService timeTableService;
     private final ReservationService reservationService;
     private final HolidayService holidayService;
+    private final StoreService storeService;
 
     /**
      * 기본 운영 시간을 생성합니다.
      */
     @Transactional
-    public void createOperation(Long storeId, DateOperationRequest request) {
+    public void createOperation(DateOperationRequest request) {
+
+        Long storeId = storeService.getMyStore().getStoreId();
 
         // schedule 조회
         Schedule schedule = scheduleService.findByStoreId(storeId);
@@ -124,7 +130,9 @@ public class OperationService {
     /**
      * 매장의 기본 운영 방식을 조회합니다.
      */
-    public ScheduleResponse getScheduleOperation(Long storeId) {
+    public ScheduleResponse getScheduleOperation() {
+
+        Long storeId = storeService.getMyStore().getStoreId();
 
         // 1. schedule 조회
         // schedule 조회
@@ -145,7 +153,9 @@ public class OperationService {
      * 기본 운영 방식을 수정합니다.
      */
     @Transactional
-    public void updateDateOperation(Long storeId, DateOperationUpdateRequests request) {
+    public void updateDateOperation(DateOperationUpdateRequests request) {
+
+        Long storeId = storeService.getMyStore().getStoreId();
 
         List<Long> dateOperationIds = request.getDateOperations()
                 .stream()
@@ -211,7 +221,9 @@ public class OperationService {
     /*
      * 예약 스케줄 기간 조회를 합니다(해당 일자의 타임테이블을 조회합니다.)
     */
-    public List<DateTableResponse> getTimeTable(Long storeId, SearchTimeTableRequest request) {
+    public List<DateTableResponse> getTimeTable(SearchTimeTableRequest request) {
+
+        Long storeId = storeService.getMyStore().getStoreId();
 
         List<TimeTableWithDateTableDto> timeTableDtos = timeTableService.search(storeId, request.getStartDate(), request.getEndDate());
 
@@ -255,9 +267,10 @@ public class OperationService {
      * 한 번에 예약 가능한 인원 수정을 합니다.
      */
     @Transactional
-    public void updateScheduleLimitCount(Long storeId, ScheduleLimitCountRequest request) {
+    public void updateScheduleLimitCount(ScheduleLimitCountRequest request) {
 
         // TODO: validation : min <= max
+        Long storeId = storeService.getMyStore().getStoreId();
 
         Schedule schedule = scheduleService.findByStoreId(storeId);
 
@@ -268,7 +281,9 @@ public class OperationService {
      * 당일 예약 관련 설정 수정을 합니다.
      */
     @Transactional
-    public void updateScheduleSameDay(Long storeId, ScheduleSameDayRequest request) {
+    public void updateScheduleSameDay(ScheduleSameDayRequest request) {
+
+        Long storeId = storeService.getMyStore().getStoreId();
 
         Schedule schedule = scheduleService.findByStoreId(storeId);
 

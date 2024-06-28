@@ -175,7 +175,7 @@ public class OperationServiceTest {
                 .timeOperationRequests(timeOperationRequests)
                 .build();
 
-        operationService.createOperation(store.getId(), request);
+        operationService.createOperation(request);
         flushAndClear();
     }
 
@@ -222,7 +222,7 @@ public class OperationServiceTest {
                 .build();
 
         // when
-        operationService.createOperation(store.getId(), request);
+        operationService.createOperation(request);
         flushAndClear();
 
         // then
@@ -300,7 +300,7 @@ public class OperationServiceTest {
         // when
         Store store = storeRepository.findTopByOrderById()
                 .orElseThrow(NotFoundStoreException::new);
-        ScheduleResponse response = operationService.getScheduleOperation(store.getId());
+        ScheduleResponse response = operationService.getScheduleOperation();
         Schedule schedule = scheduleService.findByStoreId(store.getId());
 
         // then

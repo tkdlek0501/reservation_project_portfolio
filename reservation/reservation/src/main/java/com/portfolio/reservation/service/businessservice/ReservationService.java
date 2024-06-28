@@ -60,7 +60,9 @@ public class ReservationService {
     /**
      * 예약 가능정보를 조회합니다.(예약 가능 시간 조회)
      */
-    public AvailableTimeDto getAvailableReservation(Long storeId, Long scheduleId, String stringDate, Long reserveId) {
+    public AvailableTimeDto getAvailableReservation(Long scheduleId, String stringDate, Long reserveId) {
+
+        Long storeId = storeService.getMyStore().getStoreId();
 
         Schedule schedule = scheduleService.findById(scheduleId);
 
@@ -197,7 +199,9 @@ public class ReservationService {
      * 예약 요청
      */
     @Transactional
-    public void createUserReservation(Long storeId, ReservationCreateRequest request) {
+    public void createUserReservation(ReservationCreateRequest request) {
+
+        Long storeId = storeService.getMyStore().getStoreId();
 
         // timeTable 찾기
         TimeTable timeTable = timeTableService.findById(request.getTimeId());
@@ -330,7 +334,9 @@ public class ReservationService {
      * 예약 변경
      */
     @Transactional
-    public void updateUserReservation(Long storeId, ReservationModifyRequest request) {
+    public void updateUserReservation(ReservationModifyRequest request) {
+
+        Long storeId = storeService.getMyStore().getStoreId();
 
         // 기존 reservation 찾아와서 변경 요청 가능한 상태인지 확인
         Reservation reservation = reservationRepository.findById(request.getReservationId())
@@ -378,9 +384,10 @@ public class ReservationService {
      * 예약 취소
      */
     @Transactional
-    public void deleteReservation(Long storeId, ReservationCancelRequest request) {
+    public void deleteReservation(ReservationCancelRequest request) {
 
         Long userId = userService.getMe().getUserId();
+        Long storeId = storeService.getMyStore().getStoreId();
 
         // 기존 reservation 찾아와서 취소 가능한 상태인지 확인
         Reservation reservation = reservationRepository.findById(request.getReservationId())
@@ -508,13 +515,8 @@ public class ReservationService {
         updateReservation(reservation.getUserId(), reservation, ReservationStatus.STORE_CANCEL, request.getReason());
     }
 
-    // 예약 변경 거절 -> 예약 완료, 고객 노쇼
-    // 예약 변경 확인 -> 예약 완료, 고객 노쇼
-    // 예약 확정 -> 예약 완료, 고객 노쇼
-
-    // 예약 확정, 예약 변경 요청, 예약 변경 확인, 예약 변경 거절, -> 관리자 예약 취소
     /**
-     * 예약을 관리자 예약 취소 상태로 변경한다.
+     * 예약을 완료 상태로 변경한다.
      */
     @Transactional
     public void complete(ReservationStatusRequest request) {
@@ -536,7 +538,7 @@ public class ReservationService {
 
         updateReservation(reservation.getUserId(), reservation, ReservationStatus.CLIENT_NOSHOW, null);
     }
-    
+
 
     /**
      * 상태 변경에 따라 ReservationHistory 를 저장한다.
